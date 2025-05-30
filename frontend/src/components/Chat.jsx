@@ -164,13 +164,31 @@ export default function Chat() {
         setMessages(prev => [...prev, response.data])
       }
     } catch (error) {
-      console.error('Failed to send message:', error)
+      console.error('❌ Failed to send message:', error)
+      console.error('📋 Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      })
+      console.error('📤 Request details:', {
+        url: `/chat-sessions/${sessionId}/messages`,
+        formData: {
+          content: newMessage.trim(),
+          hasImage: !!selectedImage,
+          imageType: selectedImage?.type,
+          imageSize: selectedImage?.size
+        }
+      })
       
       // Handle specific error cases
       if (error.response?.status === 401) {
         console.error('Authentication failed, redirecting to login')
         localStorage.removeItem('token')
         navigate('/login')
+      } else if (error.response?.status === 422) {
+        console.error('Validation error:', error.response?.data)
+        alert(`입력 검증 오류: ${JSON.stringify(error.response?.data?.detail || '알 수 없는 오류')}`)
       } else {
         // Show error message to user
         alert('메시지 전송에 실패했습니다. 다시 시도해주세요.')
