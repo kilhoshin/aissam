@@ -60,6 +60,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    # bytes인 경우 문자열로 변환
+    if isinstance(encoded_jwt, bytes):
+        encoded_jwt = encoded_jwt.decode('utf-8')
     return encoded_jwt
 
 # 데이터베이스 마이그레이션 실행
