@@ -20,6 +20,7 @@ from schemas import (
     ChatSessionCreate, ChatSessionResponse, MessageResponse
 )
 from ai_service import AIService
+from cloudinary_service import CloudinaryService
 
 # Load environment variables
 load_dotenv()
@@ -146,6 +147,9 @@ app = FastAPI(title="AISSAM API", version="1.0.0")
 
 # AI 서비스 초기화
 ai_service = AIService()
+
+# Cloudinary 서비스 초기화
+cloudinary_service = CloudinaryService()
 
 # CORS 설정
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -442,35 +446,21 @@ async def send_message_with_image(
     
     # 이미지 업로드 처리
     if image:
-        # uploads 디렉토리 생성
-        upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        # 이미지 데이터 읽기
+        image_data = await image.read()
         
-        # 파일명 생성 (시간스탬프 + 원본 파일명)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{timestamp}_{image.filename}"
-        file_path = upload_dir / filename
+        # Cloudinary에 이미지 업로드
+        upload_result = cloudinary_service.upload_image(
+            file_data=image_data,
+            filename=image.filename
+        )
         
-        # 파일 저장
-        with open(file_path, "wb") as buffer:
-            content_data = await image.read()
-            buffer.write(content_data)
-        
-        image_path = str(file_path)
-        
-        # 데이터베이스에 이미지 정보 저장 (선택적)
-        try:
-            db_image = UploadedImage(
-                session_id=session_id,
-                filename=image.filename,
-                filepath=image_path
-            )
-            db.add(db_image)
-            db.flush()  # 테이블 존재 여부 확인
-        except Exception as e:
-            # UploadedImage 테이블이 없어도 계속 진행
-            print(f"Warning: Could not save image metadata: {e}")
-            db.rollback()
+        if upload_result["success"]:
+            image_path = upload_result["url"]
+            print(f"✅ Image uploaded to Cloudinary: {image_path}")
+        else:
+            print(f"❌ Cloudinary upload failed: {upload_result.get('error')}")
+            image_path = None
     
     # 사용자 메시지 저장
     user_message = Message(
@@ -502,11 +492,15 @@ async def send_message_with_image(
         
         # 이미지가 있는 경우 PIL Image 객체로 변환
         pil_image = None
-        if image_path:
+        if image:
             try:
-                pil_image = Image.open(image_path)
+                # 이미지 데이터를 다시 읽어서 PIL Image로 변환
+                image.file.seek(0)  # 파일 포인터를 처음으로 이동
+                image_data_for_pil = await image.read()
+                pil_image = Image.open(io.BytesIO(image_data_for_pil))
             except Exception as e:
-                print(f"Warning: Could not load image {image_path}: {e}")
+                print(f"Warning: Could not load image for AI analysis: {e}")
+                pil_image = None
         
         # AI 응답 생성
         ai_response_content = await ai_service.generate_response(
@@ -559,8 +553,8 @@ async def get_messages(
         session_id=message.session_id,
         content=message.content,
         is_user=message.is_user,
-        image_path=f"/uploads/{os.path.basename(message.image_path)}" if message.image_path else None,
-        image_url=f"http://localhost:8000/uploads/{os.path.basename(message.image_path)}" if message.image_path else None,
+        image_path=message.image_path,
+        image_url=message.image_path,
         created_at=message.created_at
     ) for message in messages]
 
