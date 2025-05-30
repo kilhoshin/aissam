@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-import jwt
+from jose import JWTError, jwt
 import os
 from pathlib import Path
 from typing import Optional, List
@@ -276,7 +276,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_
         user_id: int = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except jwt.PyJWTError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
     user = db.query(User).filter(User.id == user_id).first()
