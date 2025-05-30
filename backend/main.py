@@ -43,9 +43,15 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 # CORS 설정 - 프로덕션 환경에서 확실히 작동하도록 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 임시로 모든 도메인 허용
-    allow_credentials=True,  # JWT 인증을 위해 True로 변경
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=[
+        "https://aissam-sigma.vercel.app",  # 프로덕션 프론트엔드
+        "http://localhost:3000",           # 로컬 개발
+        "http://localhost:5173",           # Vite 개발 서버
+        "http://127.0.0.1:3000",           # 로컬 개발 (대체)
+        "http://127.0.0.1:5173"            # Vite 개발 서버 (대체)
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
