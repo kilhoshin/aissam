@@ -258,8 +258,8 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
 
 @app.post("/token", response_model=Token)
-async def login(form_data: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.email, form_data.password)
+async def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = authenticate_user(db, username, password)
     if not user:
         raise HTTPException(
             status_code=401,
