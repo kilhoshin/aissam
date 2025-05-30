@@ -12,6 +12,7 @@ from passlib.hash import bcrypt
 import asyncio
 from PIL import Image
 import io
+from dotenv import load_dotenv
 
 from database import get_db, engine
 from models import Base, User, Subject, ChatSession, Message, UploadedImage
