@@ -10,7 +10,7 @@ export function useAuth() {
 // Configure axios defaults - use environment variable for API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 axios.defaults.baseURL = API_BASE_URL
-axios.defaults.withCredentials = false  // CORS 문제 해결을 위해 false로 변경
+axios.defaults.withCredentials = true  // JWT 인증을 위해 true로 변경
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)

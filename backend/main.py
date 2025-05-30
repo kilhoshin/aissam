@@ -44,7 +44,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 임시로 모든 도메인 허용
-    allow_credentials=False,  # credentials 사용 안함으로 변경
+    allow_credentials=True,  # JWT 인증을 위해 True로 변경
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
