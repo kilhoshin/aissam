@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from werkzeug.security import check_password_hash, generate_password_hash
+from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 import os
@@ -18,14 +18,12 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 
-from database import SessionLocal, engine
-from models import User, Subject, ChatSession, Message, UploadedImage, Base
+from database import SessionLocal, engine, Base
+from models import User, ChatSession, Message, Subject, UploadedImage
 from schemas import (
-    UserCreate, UserResponse, Token, ChatSessionCreate, ChatSessionResponse,
+    UserCreate, UserResponse, LoginRequest, 
+    ChatSessionCreate, ChatSessionResponse,
     MessageCreate, MessageResponse, SubjectResponse
-)
-from auth import (
-    authenticate_user, create_access_token, get_password_hash, verify_password
 )
 from ai_service import AIService
 
@@ -36,6 +34,33 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return False
+    if not verify_password(password, user.password_hash):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 # 데이터베이스 마이그레이션 실행
 def run_migrations():
