@@ -25,8 +25,60 @@ from ai_service import AIService
 # Load environment variables
 load_dotenv()
 
-# Create database tables
+# 데이터베이스 마이그레이션 실행
+def run_migrations():
+    """애플리케이션 시작 시 필요한 마이그레이션 실행"""
+    try:
+        from sqlalchemy import text
+        with SessionLocal() as db:
+            # messages 테이블에 image_path 컬럼 존재 여부 확인 후 추가
+            try:
+                # 컬럼 존재 여부 확인
+                result = db.execute(text("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'messages' AND column_name = 'image_path'
+                """))
+                column_exists = result.fetchone() is not None
+                
+                if not column_exists:
+                    db.execute(text("ALTER TABLE messages ADD COLUMN image_path VARCHAR NULL"))
+                    db.commit()
+                    print("✅ Database migration: image_path column added")
+                else:
+                    print("⚠️ image_path column already exists")
+            except Exception as e:
+                db.rollback()
+                print(f"⚠️ Migration warning: {e}")
+                
+            # 기본 subjects 데이터 확인/추가
+            try:
+                result = db.execute(text("SELECT COUNT(*) FROM subjects"))
+                count = result.scalar()
+                
+                if count == 0:
+                    db.execute(text("""
+                        INSERT INTO subjects (name, color, icon) VALUES
+                        ('수학', '#3B82F6', 'calculator'),
+                        ('영어', '#EF4444', 'globe'),
+                        ('국어', '#10B981', 'book'),
+                        ('사회탐구', '#F97316', 'building'),
+                        ('과학탐구', '#8B5CF6', 'beaker')
+                    """))
+                    db.commit()
+                    print("✅ Default subjects data inserted")
+            except Exception as e:
+                db.rollback()
+                print(f"⚠️ Subjects insertion warning: {e}")
+                
+    except Exception as e:
+        print(f"❌ Migration failed: {e}")
+
+# 데이터베이스 테이블 생성
 Base.metadata.create_all(bind=engine)
+
+# 마이그레이션 실행
+run_migrations()
 
 app = FastAPI(title="AISSAM API", version="1.0.0")
 
