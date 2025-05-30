@@ -1,12 +1,20 @@
-from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File, Form
+from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import FileResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-import uvicorn
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
-import time
-from typing import Optional, List
+import jwt
 import os
+from pathlib import Path
+from typing import Optional, List
+import shutil
+import uvicorn
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 
@@ -17,13 +25,17 @@ from schemas import (
     MessageCreate, MessageResponse, SubjectResponse
 )
 from auth import (
-    authenticate_user, create_access_token, get_current_user,
-    get_password_hash, verify_password
+    authenticate_user, create_access_token, get_password_hash, verify_password
 )
 from ai_service import AIService
 
 # Load environment variables
 load_dotenv()
+
+# JWT 설정
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # 데이터베이스 마이그레이션 실행
 def run_migrations():
@@ -128,7 +140,7 @@ app.add_middleware(
         "http://localhost:3000",           # 로컬 개발
         "http://localhost:5173",           # Vite 개발 서버
         "http://127.0.0.1:3000",           # 로컬 개발 (대체)
-        "http://127.0.0.1:5173"            # Vite 개발 서버 (대체)
+        "http://127.0.1:5173"            # Vite 개발 서버 (대체)
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -138,7 +150,7 @@ app.add_middleware(
 # Initialize services
 ai_service = AIService()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = HTTPBearer()
 
 # Dependency to get database session
 def get_db():
@@ -147,6 +159,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
 
 @app.get("/")
 async def root():
@@ -223,6 +242,22 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """현재 인증된 사용자 반환"""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 @app.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
@@ -368,6 +403,12 @@ async def send_message_with_image(
     import os
     from pathlib import Path
     
+    print(f"🔍 Message endpoint called:")
+    print(f"   session_id: {session_id}")
+    print(f"   content: '{content}'")
+    print(f"   image: {image.filename if image else 'None'}")
+    print(f"   user: {current_user.email}")
+    
     # 세션 확인
     session = db.query(ChatSession).filter(
         ChatSession.id == session_id,
@@ -375,6 +416,7 @@ async def send_message_with_image(
     ).first()
     
     if not session:
+        print(f"❌ Session {session_id} not found for user {current_user.id}")
         raise HTTPException(status_code=404, detail="Chat session not found")
     
     image_path = None
