@@ -110,7 +110,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=30)
+    access_token_expires = timedelta(hours=24)  # 30분에서 24시간으로 변경
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )

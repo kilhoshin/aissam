@@ -32,7 +32,12 @@ export function AuthProvider({ children }) {
       setUser(response.data)
     } catch (error) {
       console.error('Failed to fetch user:', error)
-      logout()
+      
+      // 토큰이 만료되었거나 유효하지 않은 경우 로그아웃
+      if (error.response?.status === 401) {
+        console.log('Token expired or invalid, logging out...')
+        logout()
+      }
     } finally {
       setLoading(false)
     }
@@ -71,9 +76,23 @@ export function AuthProvider({ children }) {
       return loginResult
     } catch (error) {
       console.error('Registration failed:', error)
+      
+      // 더 구체적인 에러 메시지 제공
+      let errorMessage = '회원가입에 실패했습니다.'
+      
+      if (error.response?.status === 400) {
+        if (error.response.data?.detail === 'Email already registered') {
+          errorMessage = '이미 등록된 이메일입니다. 다른 이메일을 사용해주세요.'
+        } else {
+          errorMessage = error.response.data?.detail || '입력 정보를 확인해주세요.'
+        }
+      } else if (error.response?.status === 500) {
+        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.detail || '회원가입에 실패했습니다.' 
+        error: errorMessage
       }
     }
   }
