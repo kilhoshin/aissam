@@ -40,16 +40,11 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Add CORS middleware
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
-# CORS 설정 - 프로덕션 환경을 위한 명시적 설정
+# CORS 설정 - 프로덕션 환경에서 확실히 작동하도록 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000", 
-        "https://aissam-sigma.vercel.app",
-        FRONTEND_URL
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # 임시로 모든 도메인 허용
+    allow_credentials=False,  # credentials 사용 안함으로 변경
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
@@ -73,27 +68,36 @@ async def root():
 
 @app.post("/register", response_model=UserResponse)
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Create new user
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
-        email=user.email,
-        hashed_password=hashed_password,
-        grade=user.grade
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    
-    return UserResponse(
-        id=db_user.id,
-        email=db_user.email,
-        grade=db_user.grade
-    )
+    try:
+        # Check if user already exists
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
+            email=user.email,
+            hashed_password=hashed_password,
+            grade=user.grade
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+        return UserResponse(
+            id=db_user.id,
+            email=db_user.email,
+            grade=db_user.grade
+        )
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error and return a generic message
+        print(f"Registration error: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed. Please try again.")
 
 @app.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
