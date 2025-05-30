@@ -10,6 +10,7 @@ export function useAuth() {
 // Configure axios defaults - use environment variable for API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 axios.defaults.baseURL = API_BASE_URL
+axios.defaults.withCredentials = false  // CORS 설정과 맞춤
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -63,16 +64,43 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
+      console.log('🔄 Registration attempt:', { email: userData.email, grade: userData.grade })
       const response = await axios.post('/register', userData)
+      console.log('✅ Registration successful:', response.data)
       
       // After successful registration, automatically log in
       const loginResult = await login(userData.email, userData.password)
       return loginResult
     } catch (error) {
-      console.error('Registration failed:', error)
+      console.error('❌ Registration failed:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL
+        }
+      })
+      
+      let errorMessage = '회원가입에 실패했습니다.'
+      
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.response?.status === 400) {
+        errorMessage = '입력 정보를 확인해주세요.'
+      } else if (error.response?.status === 409) {
+        errorMessage = '이미 등록된 이메일입니다.'
+      } else if (error.response?.status >= 500) {
+        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        errorMessage = '네트워크 연결을 확인해주세요.'
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.detail || '회원가입에 실패했습니다.' 
+        error: errorMessage
       }
     }
   }
