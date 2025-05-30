@@ -165,11 +165,12 @@ app.add_middleware(
         "http://localhost:3000",           # 로컬 개발
         "http://localhost:5173",           # Vite 개발 서버
         "http://127.0.0.1:3000",           # 로컬 개발 (대체)
-        "http://127.0.1:5173"            # Vite 개발 서버 (대체)
+        "http://127.0.0.1:5173"            # Vite 개발 서버 (대체)
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Initialize services
@@ -264,7 +265,7 @@ async def login(form_data: LoginRequest, db: Session = Depends(get_db)):
         )
     access_token_expires = timedelta(hours=24)  # 30분에서 24시간으로 변경
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -273,10 +274,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_
     try:
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str: str = payload.get("sub")
+        if user_id_str is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except JWTError:
+        user_id = int(user_id_str)
+    except (JWTError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
     user = db.query(User).filter(User.id == user_id).first()
