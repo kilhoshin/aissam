@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -10,8 +10,8 @@ import os
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 
-from database import SessionLocal, engine, Base
-from models import User, Subject, ChatSession, Message, UploadedImage
+from database import SessionLocal, engine
+from models import User, Subject, ChatSession, Message, UploadedImage, Base
 from schemas import (
     UserCreate, UserResponse, Token, ChatSessionCreate, ChatSessionResponse,
     MessageCreate, MessageResponse, SubjectResponse
@@ -277,15 +277,19 @@ async def get_chat_session(
         message_count=message_count
     )
 
-@app.post("/chat-sessions/{session_id}/messages", response_model=MessageResponse)
-async def send_message(
+@app.post("/chat-sessions/{session_id}/messages")
+async def send_message_with_image(
     session_id: int,
-    message_text: Optional[str] = Form(None),
-    image: Optional[UploadFile] = File(None),
+    content: str = Form(...),
+    image: UploadFile = File(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Verify session belongs to user
+    """이미지와 함께 메시지 전송"""
+    import os
+    from pathlib import Path
+    
+    # 세션 확인
     session = db.query(ChatSession).filter(
         ChatSession.id == session_id,
         ChatSession.user_id == current_user.id
@@ -294,94 +298,75 @@ async def send_message(
     if not session:
         raise HTTPException(status_code=404, detail="Chat session not found")
     
-    # Process image if provided
-    image_path = ""
+    image_path = None
     
+    # 이미지 업로드 처리
     if image:
-        # Save uploaded image
-        upload_dir = "uploads"
-        os.makedirs(upload_dir, exist_ok=True)
-        image_path = f"{upload_dir}/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{image.filename}"
+        # uploads 디렉토리 생성
+        upload_dir = Path("uploads")
+        upload_dir.mkdir(exist_ok=True)
         
-        with open(image_path, "wb") as buffer:
-            content = await image.read()
-            buffer.write(content)
+        # 파일명 생성 (시간스탬프 + 원본 파일명)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{timestamp}_{image.filename}"
+        file_path = upload_dir / filename
         
-        # Save image metadata
+        # 파일 저장
+        with open(file_path, "wb") as buffer:
+            content_data = await image.read()
+            buffer.write(content_data)
+        
+        image_path = str(file_path)
+        
+        # 데이터베이스에 이미지 정보 저장
         db_image = UploadedImage(
             session_id=session_id,
             filename=image.filename,
             filepath=image_path
         )
         db.add(db_image)
-        db.commit()
     
-    # Create user message
+    # 사용자 메시지 저장
     user_message = Message(
         session_id=session_id,
-        content=message_text or "",
+        content=content,
         is_user=True,
-        image_path=image_path if image else None
+        image_path=image_path
     )
     db.add(user_message)
     db.commit()
     db.refresh(user_message)
     
-    # Get subject info for AI context
-    subject = db.query(Subject).filter(Subject.id == session.subject_id).first()
+    # AI 응답 생성 (임시)
+    ai_response_content = f"이미지와 함께 받은 질문: '{content}'"
+    if image:
+        ai_response_content += f"\n이미지 파일명: {image.filename}"
+    ai_response_content += "\n\n죄송합니다. 현재 AI 모델이 연결되지 않아 임시 응답을 드립니다. 곧 실제 AI 튜터 기능이 추가될 예정입니다."
     
-    # Get conversation history for context (ALL messages from this session)
-    previous_messages = db.query(Message).filter(
-        Message.session_id == session_id
-    ).order_by(Message.created_at.desc()).all()
-    
-    # Convert to list format for AI service (reverse to chronological order)
-    conversation_history = []
-    for msg in reversed(previous_messages):
-        conversation_history.append({
-            'content': msg.content,
-            'is_user': msg.is_user,
-            'created_at': msg.created_at.isoformat()
-        })
-    
-    # Generate AI response with conversation context
-    from PIL import Image
-    image_for_ai = None
-    if image_path:
-        image_for_ai = Image.open(image_path)
-        # Resize if too large
-        if image_for_ai.width > 1024 or image_for_ai.height > 1024:
-            image_for_ai.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
-        # Convert to RGB if needed
-        if image_for_ai.mode != 'RGB':
-            image_for_ai = image_for_ai.convert('RGB')
-    
-    ai_response = await ai_service.generate_response(
-        subject_name=subject.name,
-        message_text=user_message.content,
-        conversation_history=conversation_history,
-        image=image_for_ai
-    )
-    
-    # Create AI message
     ai_message = Message(
         session_id=session_id,
-        content=ai_response,
+        content=ai_response_content,
         is_user=False
     )
     db.add(ai_message)
     db.commit()
     db.refresh(ai_message)
     
-    return MessageResponse(
-        id=ai_message.id,
-        session_id=ai_message.session_id,
-        content=ai_message.content,
-        is_user=ai_message.is_user,
-        image_path=ai_message.image_path,
-        image_url=f"http://localhost:8000/uploads/{os.path.basename(user_message.image_path)}" if user_message.image_path else None,
-        created_at=ai_message.created_at
-    )
+    return {
+        "user_message": {
+            "id": user_message.id,
+            "content": user_message.content,
+            "is_user": user_message.is_user,
+            "image_path": user_message.image_path,
+            "created_at": user_message.created_at
+        },
+        "ai_message": {
+            "id": ai_message.id,
+            "content": ai_message.content,
+            "is_user": ai_message.is_user,
+            "created_at": ai_message.created_at
+        }
+    }
 
 @app.get("/chat-sessions/{session_id}/messages", response_model=List[MessageResponse])
 async def get_messages(
