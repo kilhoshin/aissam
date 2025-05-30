@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { BookOpen, Eye, EyeOff } from 'lucide-react'
+import { GraduationCap, Bot, Sparkles, Eye, EyeOff } from 'lucide-react'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -64,42 +64,61 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center">
-            <div className="bg-blue-500 p-3 rounded-full">
-              <BookOpen className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-300/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative max-w-md w-full space-y-8">
+        {/* Header Section */}
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <GraduationCap className="h-12 w-12 text-white" />
+              </div>
+              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-400 p-2 rounded-full shadow-lg">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
             </div>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            AISSAM 회원가입
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            AISSAM
+          </h1>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">
+            AI 개인 과외 회원가입
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            AI 선생님과 함께 시작하는 개인 맞춤 학습
-          </p>
+          <div className="flex items-center justify-center space-x-2 text-purple-600">
+            <Bot className="h-5 w-5" />
+            <p className="text-sm font-medium">
+              24시간 언제나 함께하는 AI 선생님
+            </p>
+            <Sparkles className="h-4 w-4" />
+          </div>
         </div>
         
-        {/* Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        {/* Register Form */}
+        <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/50">
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-              회원가입에 실패했습니다.
+            <div className="mb-6 bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm backdrop-blur-sm">
+              {error}
             </div>
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 이메일 주소
               </label>
               <input
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-5 py-4 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
                 placeholder="이메일을 입력하세요"
                 value={formData.email}
                 onChange={handleInputChange}
@@ -108,7 +127,7 @@ export default function Register() {
             
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 비밀번호
               </label>
               <div className="relative">
@@ -116,20 +135,20 @@ export default function Register() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-5 py-4 pr-12 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
                   placeholder="비밀번호 (6자 이상)"
                   value={formData.password}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
@@ -137,7 +156,7 @@ export default function Register() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 비밀번호 확인
               </label>
               <div className="relative">
@@ -145,20 +164,20 @@ export default function Register() {
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
-                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-5 py-4 pr-12 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
                   placeholder="비밀번호를 다시 입력하세요"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
@@ -166,21 +185,27 @@ export default function Register() {
 
             {/* Grade Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 학년 선택
               </label>
-              <div className="flex space-x-6">
+              <div className="flex space-x-4">
                 {grades.map((grade) => (
-                  <label key={grade} className="flex items-center cursor-pointer">
+                  <label key={grade} className="flex items-center cursor-pointer group">
                     <input
                       type="radio"
                       name="grade"
                       value={grade}
                       checked={formData.grade === grade}
                       onChange={handleInputChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      className="sr-only"
                     />
-                    <span className="ml-2 text-sm font-medium text-gray-700">{grade}</span>
+                    <div className={`px-6 py-3 rounded-2xl border-2 transition-all duration-300 text-center font-semibold min-w-[4rem] ${
+                      formData.grade === grade
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg transform scale-105'
+                        : 'bg-white/70 backdrop-blur-sm border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
+                    }`}>
+                      {grade}
+                    </div>
                   </label>
                 ))}
               </div>
@@ -190,15 +215,12 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading || !formData.grade}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02]"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="loading-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                  회원가입 중...
                 </div>
               ) : (
                 '회원가입'
@@ -207,13 +229,14 @@ export default function Register() {
           </form>
 
           {/* Login Link */}
-          <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">이미 계정이 있으신가요? </span>
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 text-sm mb-2">이미 계정이 있으신가요?</p>
             <Link
               to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+              className="inline-flex items-center text-purple-600 hover:text-pink-600 font-semibold transition-colors duration-300"
             >
-              로그인
+              로그인하기
+              <Sparkles className="ml-1 h-4 w-4" />
             </Link>
           </div>
         </div>
