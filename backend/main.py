@@ -16,7 +16,7 @@ from PIL import Image
 import io
 from dotenv import load_dotenv
 
-from database import get_db, engine
+from database import get_db, engine, SessionLocal
 from models import Base, User, Subject, ChatSession, Message, UploadedImage
 from schemas import (
     UserCreate, UserResponse, LoginRequest, Token, SubjectResponse, 
