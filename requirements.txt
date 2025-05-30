@@ -1,6 +1,6 @@
 # Backend Framework
 fastapi==0.104.1
-uvicorn[standard]==0.24.0
+uvicorn==0.24.0
 
 # Database
 sqlalchemy==2.0.23
@@ -20,6 +20,9 @@ google-generativeai==0.3.2
 
 # File handling
 python-multipart==0.0.6
+
+# Email Validation
+email-validator==2.1.0
 
 # Image processing (basic only)
 Pillow==10.1.0
