@@ -47,10 +47,11 @@ app.add_middleware(
         "http://localhost:5173", 
         "http://127.0.0.1:5173",
         "https://aissam-sigma.vercel.app",
+        "https://*.vercel.app",  # Vercel 도메인 와일드카드
         FRONTEND_URL
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
