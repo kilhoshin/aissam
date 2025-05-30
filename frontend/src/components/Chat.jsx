@@ -135,12 +135,11 @@ export default function Chat() {
       
       const config = {
         headers: { 
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       }
       const formData = new FormData()
-      formData.append('message_text', newMessage.trim())
+      formData.append('content', newMessage.trim())
       if (selectedImage) {
         formData.append('image', selectedImage)
       }
