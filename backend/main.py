@@ -78,6 +78,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         hashed_password = get_password_hash(user.password)
         db_user = User(
             email=user.email,
+            name=user.name,
             hashed_password=hashed_password,
             grade=user.grade
         )
@@ -88,6 +89,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         return UserResponse(
             id=db_user.id,
             email=db_user.email,
+            name=db_user.name,
             grade=db_user.grade
         )
     except HTTPException:
@@ -119,6 +121,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
+        name=current_user.name,
         grade=current_user.grade
     )
 

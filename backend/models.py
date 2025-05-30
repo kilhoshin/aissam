@@ -10,6 +10,7 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    name = Column(String, nullable=False)  # 사용자 이름
     hashed_password = Column(String)
     grade = Column(String)  # 1학년, 2학년, 3학년
     created_at = Column(DateTime, default=datetime.utcnow)

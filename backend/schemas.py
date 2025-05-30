@@ -5,12 +5,14 @@ from datetime import datetime
 # User schemas
 class UserCreate(BaseModel):
     email: EmailStr
+    name: str
     password: str
     grade: str  # 고1, 고2, 고3
 
 class UserResponse(BaseModel):
     id: int
     email: str
+    name: str
     grade: str
     
     class Config:

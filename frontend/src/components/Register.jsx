@@ -5,6 +5,7 @@ import { GraduationCap, Bot, Sparkles, Eye, EyeOff } from 'lucide-react'
 
 export default function Register() {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -47,6 +48,7 @@ export default function Register() {
     }
 
     const userData = {
+      name: formData.name,
       email: formData.email,
       password: formData.password,
       grade: formData.grade
@@ -109,6 +111,22 @@ export default function Register() {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                이름
+              </label>
+              <input
+                name="name"
+                type="text"
+                required
+                className="w-full px-5 py-4 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
+                placeholder="이름을 입력하세요"
+                value={formData.name}
+                onChange={handleInputChange}
+              />
+            </div>
+
             {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
