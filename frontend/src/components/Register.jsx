@@ -65,8 +65,9 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
+      <div className="max-w-md w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
           <div className="flex justify-center">
             <div className="bg-blue-500 p-3 rounded-full">
               <BookOpen className="h-8 w-8 text-white" />
@@ -80,54 +81,49 @@ export default function Register() {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-lg" onSubmit={handleSubmit}>
+        {/* Card */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              {error}
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              회원가입에 실패했습니다.
             </div>
           )}
           
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 이메일 주소
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  className="appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="이메일을 입력하세요"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              </div>
+              <input
+                name="email"
+                type="email"
+                required
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="이메일을 입력하세요"
+                value={formData.email}
+                onChange={handleInputChange}
+              />
             </div>
             
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 비밀번호
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="appearance-none relative block w-full px-3 py-3 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="비밀번호 (6자 이상)"
                   value={formData.password}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -139,26 +135,24 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 비밀번호 확인
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
-                  className="appearance-none relative block w-full px-3 py-3 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="비밀번호를 다시 입력하세요"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
@@ -170,13 +164,14 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Grade Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 학년 선택
               </label>
-              <div className="flex space-x-4">
+              <div className="flex space-x-6">
                 {grades.map((grade) => (
-                  <label key={grade} className="flex items-center">
+                  <label key={grade} className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       name="grade"
@@ -185,32 +180,34 @@ export default function Register() {
                       onChange={handleInputChange}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <span className="ml-2 text-sm text-gray-700">{grade}</span>
+                    <span className="ml-2 text-sm font-medium text-gray-700">{grade}</span>
                   </label>
                 ))}
               </div>
             </div>
-          </div>
 
-          <div>
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading || !formData.grade}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
-                <div className="loading-dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                <div className="flex items-center justify-center">
+                  <div className="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
                 </div>
               ) : (
                 '회원가입'
               )}
             </button>
-          </div>
+          </form>
 
-          <div className="text-center">
+          {/* Login Link */}
+          <div className="mt-6 text-center text-sm">
             <span className="text-gray-600">이미 계정이 있으신가요? </span>
             <Link
               to="/login"
@@ -219,7 +216,7 @@ export default function Register() {
               로그인
             </Link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )
