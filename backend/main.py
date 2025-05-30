@@ -40,11 +40,16 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Add CORS middleware
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
-# CORS 설정 - 임시로 모든 도메인 허용 (디버깅용)
+# CORS 설정 - 프로덕션 환경을 위한 명시적 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000", 
+        "https://aissam-sigma.vercel.app",
+        FRONTEND_URL
+    ],
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
