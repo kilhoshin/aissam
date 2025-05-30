@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { BookOpen, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
+import { BookOpen, Eye, EyeOff } from 'lucide-react'
 
 export default function Register() {
   const [formData, setFormData] = useState({
