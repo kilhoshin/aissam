@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import os
 from pathlib import Path
 from typing import List, Optional
-import jwt
+from jose import jwt
 from passlib.context import CryptContext
 from passlib.hash import bcrypt
 import asyncio
@@ -270,7 +270,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_
         if user_id_str is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
         user_id = int(user_id_str)
-    except (JWTError, ValueError):
+    except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
     user = db.query(User).filter(User.id == user_id).first()
