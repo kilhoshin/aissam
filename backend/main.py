@@ -50,6 +50,33 @@ def run_migrations():
             except Exception as e:
                 db.rollback()
                 print(f"⚠️ Migration warning: {e}")
+            
+            # uploaded_images 테이블 존재 여부 확인 후 생성
+            try:
+                result = db.execute(text("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_name = 'uploaded_images'
+                """))
+                table_exists = result.fetchone() is not None
+                
+                if not table_exists:
+                    db.execute(text("""
+                        CREATE TABLE uploaded_images (
+                            id SERIAL PRIMARY KEY,
+                            session_id INTEGER NOT NULL,
+                            filename VARCHAR NOT NULL,
+                            filepath VARCHAR NOT NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """))
+                    db.commit()
+                    print("✅ Database migration: uploaded_images table created")
+                else:
+                    print("⚠️ uploaded_images table already exists")
+            except Exception as e:
+                db.rollback()
+                print(f"⚠️ uploaded_images table creation warning: {e}")
                 
             # 기본 subjects 데이터 확인/추가
             try:
@@ -370,13 +397,19 @@ async def send_message_with_image(
         
         image_path = str(file_path)
         
-        # 데이터베이스에 이미지 정보 저장
-        db_image = UploadedImage(
-            session_id=session_id,
-            filename=image.filename,
-            filepath=image_path
-        )
-        db.add(db_image)
+        # 데이터베이스에 이미지 정보 저장 (선택적)
+        try:
+            db_image = UploadedImage(
+                session_id=session_id,
+                filename=image.filename,
+                filepath=image_path
+            )
+            db.add(db_image)
+            db.flush()  # 테이블 존재 여부 확인
+        except Exception as e:
+            # UploadedImage 테이블이 없어도 계속 진행
+            print(f"Warning: Could not save image metadata: {e}")
+            db.rollback()
     
     # 사용자 메시지 저장
     user_message = Message(
