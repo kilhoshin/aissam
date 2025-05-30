@@ -29,6 +29,11 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AISSAM API", version="1.0.0")
 
+# Create uploads directory if it doesn't exist
+uploads_dir = "uploads"
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir)
+
 # Mount static files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
