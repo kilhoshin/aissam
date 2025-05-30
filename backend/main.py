@@ -48,7 +48,7 @@ def authenticate_user(db: Session, email: str, password: str):
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return False
-    if not verify_password(password, user.password_hash):
+    if not verify_password(password, user.hashed_password):
         return False
     return user
 
