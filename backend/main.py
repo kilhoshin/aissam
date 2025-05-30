@@ -69,9 +69,30 @@ async def root():
 @app.post("/register", response_model=UserResponse)
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
+        # 받은 데이터 로깅
+        print(f"Registration attempt: email={user.email}, name='{user.name}', grade='{user.grade}'")
+        
+        # Validation 확인
+        if not user.name or not user.name.strip():
+            print("Error: Name is empty or whitespace")
+            raise HTTPException(status_code=400, detail="이름을 입력해주세요.")
+        
+        if not user.email or not user.email.strip():
+            print("Error: Email is empty or whitespace")
+            raise HTTPException(status_code=400, detail="이메일을 입력해주세요.")
+            
+        if not user.password or len(user.password) < 6:
+            print("Error: Password too short")
+            raise HTTPException(status_code=400, detail="비밀번호는 최소 6자 이상이어야 합니다.")
+            
+        if not user.grade or user.grade not in ['고1', '고2', '고3']:
+            print(f"Error: Invalid grade '{user.grade}'")
+            raise HTTPException(status_code=400, detail="올바른 학년을 선택해주세요.")
+        
         # Check if user already exists
         db_user = db.query(User).filter(User.email == user.email).first()
         if db_user:
+            print(f"Error: Email {user.email} already exists")
             raise HTTPException(status_code=400, detail="Email already registered")
         
         # Create new user
@@ -86,6 +107,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_user)
         
+        print(f"User successfully created: {user.email}")
         return UserResponse(
             id=db_user.id,
             email=db_user.email,

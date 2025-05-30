@@ -69,13 +69,16 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
+      console.log('Sending registration data:', userData)
       const response = await axios.post('/register', userData)
+      console.log('Registration successful:', response.data)
       
       // After successful registration, automatically log in
       const loginResult = await login(userData.email, userData.password)
       return loginResult
     } catch (error) {
       console.error('Registration failed:', error)
+      console.error('Error response:', error.response?.data)
       
       // 더 구체적인 에러 메시지 제공
       let errorMessage = '회원가입에 실패했습니다.'
