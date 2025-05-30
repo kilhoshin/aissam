@@ -27,3 +27,4 @@ email-validator==2.1.0
 
 # Image processing (basic only)
 Pillow==10.1.0
+cloudinary==1.37.0
