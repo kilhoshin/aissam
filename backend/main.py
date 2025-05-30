@@ -29,23 +29,22 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AISSAM API", version="1.0.0")
 
-# Create uploads directory if it doesn't exist
-uploads_dir = "uploads"
-if not os.path.exists(uploads_dir):
-    os.makedirs(uploads_dir)
-
 # Mount static files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Add CORS middleware
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
-# CORS 설정 - 더 관대하게 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 도메인 허용 (개발/디버깅용)
-    allow_credentials=False,  # credentials를 False로 설정
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000", 
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173",
+        FRONTEND_URL
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
