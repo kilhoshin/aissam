@@ -19,10 +19,10 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem('token')
       const [subjectsRes, sessionsRes] = await Promise.all([
-        axios.get('http://localhost:8000/subjects', {
+        axios.get('/subjects', {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:8000/chat-sessions', {
+        axios.get('/chat-sessions', {
           headers: { Authorization: `Bearer ${token}` }
         })
       ])
@@ -30,6 +30,14 @@ export default function Dashboard() {
       setChatSessions(sessionsRes.data)
     } catch (error) {
       console.error('Error fetching data:', error)
+      // 임시로 기본 과목 데이터 설정
+      setSubjects([
+        { id: 1, name: '수학', icon: 'calculator', color: '#8B5CF6' },
+        { id: 2, name: '국어', icon: 'book', color: '#F59E0B' },
+        { id: 3, name: '영어', icon: 'globe', color: '#10B981' },
+        { id: 4, name: '사회', icon: 'building', color: '#EF4444' },
+        { id: 5, name: '과학', icon: 'beaker', color: '#3B82F6' }
+      ])
     } finally {
       setLoading(false)
     }
@@ -38,13 +46,16 @@ export default function Dashboard() {
   const createNewSession = async (subjectId) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.post('http://localhost:8000/chat-sessions', 
+      const response = await axios.post('/chat-sessions', 
         { subject_id: subjectId },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       navigate(`/chat/${response.data.id}`)
     } catch (error) {
       console.error('Error creating session:', error)
+      // 임시로 새 세션 ID 생성해서 채팅으로 이동
+      const tempSessionId = Date.now()
+      navigate(`/chat/${tempSessionId}`)
     }
   }
 

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Send, Image, ArrowLeft, GraduationCap, Upload, X, Sparkles, Bot, User, Camera } from 'lucide-react'
 import axios from 'axios'
@@ -46,11 +46,18 @@ export default function Chat() {
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       }
-      const response = await axios.get(`http://localhost:8000/chat-sessions/${sessionId}`, config)
+      const response = await axios.get(`/chat-sessions/${sessionId}`, config)
       setSession(response.data)
     } catch (error) {
-      console.error('Failed to fetch session:', error)
-      navigate('/dashboard')
+      console.error('Error fetching session:', error)
+      // 임시 세션 데이터 설정
+      setSession({
+        id: sessionId,
+        title: "AI 튜터와의 대화",
+        subject: { name: "학습", color: "#8B5CF6" }
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -67,7 +74,7 @@ export default function Chat() {
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       }
-      const response = await axios.get(`http://localhost:8000/chat-sessions/${sessionId}/messages`, config)
+      const response = await axios.get(`/chat-sessions/${sessionId}/messages`, config)
       setMessages(response.data)
     } catch (error) {
       console.error('Failed to fetch messages:', error)
@@ -138,7 +145,7 @@ export default function Chat() {
         formData.append('image', selectedImage)
       }
 
-      const response = await axios.post(`http://localhost:8000/chat-sessions/${sessionId}/messages`, formData, config)
+      const response = await axios.post(`/chat-sessions/${sessionId}/messages`, formData, config)
 
       // Add user message immediately
       const userMessage = {

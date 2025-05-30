@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import uvicorn
 from datetime import datetime, timedelta
+import time
 from typing import Optional, List
 import os
 from dotenv import load_dotenv
@@ -409,4 +410,4 @@ async def get_messages(
     ) for message in messages]
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
