@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from database import SessionLocal, engine, Base
 from models import User, ChatSession, Message, Subject, UploadedImage
 from schemas import (
-    UserCreate, UserResponse, LoginRequest, 
+    UserCreate, UserResponse, LoginRequest, Token,
     ChatSessionCreate, ChatSessionResponse,
     MessageCreate, MessageResponse, SubjectResponse
 )
