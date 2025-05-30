@@ -1,29 +1,23 @@
-from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, status, Request
+from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordRequestForm
-from fastapi.responses import FileResponse
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
 import os
 from pathlib import Path
-from typing import Optional, List
-import shutil
-import uvicorn
-from dotenv import load_dotenv
-from fastapi.staticfiles import StaticFiles
+from typing import List, Optional
+import jwt
+from passlib.context import CryptContext
+from passlib.hash import bcrypt
+import asyncio
+from PIL import Image
+import io
 
-from database import SessionLocal, engine, Base
-from models import User, ChatSession, Message, Subject, UploadedImage
+from database import get_db, engine
+from models import Base, User, Subject, ChatSession, Message, UploadedImage
 from schemas import (
-    UserCreate, UserResponse, LoginRequest, Token,
-    ChatSessionCreate, ChatSessionResponse,
-    MessageCreate, MessageResponse, SubjectResponse
+    UserCreate, UserResponse, LoginRequest, Token, SubjectResponse, 
+    ChatSessionCreate, ChatSessionResponse, MessageResponse
 )
 from ai_service import AIService
 
@@ -147,17 +141,13 @@ Base.metadata.create_all(bind=engine)
 # 마이그레이션 실행
 run_migrations()
 
+# FastAPI 앱 생성
 app = FastAPI(title="AISSAM API", version="1.0.0")
 
-# Create uploads directory if it doesn't exist
-uploads_dir = "uploads"
-if not os.path.exists(uploads_dir):
-    os.makedirs(uploads_dir)
+# AI 서비스 초기화
+ai_service = AIService()
 
-# Mount static files
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# Add CORS middleware
+# CORS 설정
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # CORS 설정 - 프로덕션 환경에서 확실히 작동하도록 설정
@@ -177,7 +167,6 @@ app.add_middleware(
 )
 
 # Initialize services
-ai_service = AIService()
 
 oauth2_scheme = HTTPBearer()
 
@@ -494,12 +483,44 @@ async def send_message_with_image(
     db.commit()
     db.refresh(user_message)
     
-    # AI 응답 생성 (임시)
-    ai_response_content = f"이미지와 함께 받은 질문: '{content}'"
-    if image:
-        ai_response_content += f"\n이미지 파일명: {image.filename}"
-    ai_response_content += "\n\n죄송합니다. 현재 AI 모델이 연결되지 않아 임시 응답을 드립니다. 곧 실제 AI 튜터 기능이 추가될 예정입니다."
+    try:
+        # 과목 정보 가져오기
+        subject = db.query(Subject).filter(Subject.id == session.subject_id).first()
+        subject_name = subject.name if subject else "수학"
+        
+        # 대화 히스토리 가져오기 (최근 10개 메시지)
+        conversation_history = []
+        recent_messages = db.query(Message).filter(
+            Message.session_id == session_id
+        ).order_by(Message.created_at.desc()).limit(10).all()
+        
+        for msg in reversed(recent_messages):  # 시간순으로 정렬
+            conversation_history.append({
+                'content': msg.content,
+                'is_user': msg.is_user
+            })
+        
+        # 이미지가 있는 경우 PIL Image 객체로 변환
+        pil_image = None
+        if image_path:
+            try:
+                pil_image = Image.open(image_path)
+            except Exception as e:
+                print(f"Warning: Could not load image {image_path}: {e}")
+        
+        # AI 응답 생성
+        ai_response_content = await ai_service.generate_response(
+            subject_name=subject_name,
+            message_text=content,
+            conversation_history=conversation_history,
+            image=pil_image
+        )
+        
+    except Exception as e:
+        print(f"AI response generation error: {e}")
+        ai_response_content = "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해 주세요."
     
+    # AI 응답 메시지 저장
     ai_message = Message(
         session_id=session_id,
         content=ai_response_content,
