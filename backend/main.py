@@ -15,6 +15,7 @@ import asyncio
 from PIL import Image
 import io
 from dotenv import load_dotenv
+import json  # Added missing import
 
 from database import get_db, engine, SessionLocal
 from models import Base, User, Subject, ChatSession, Message, UploadedImage
@@ -149,8 +150,27 @@ Base.metadata.create_all(bind=engine)
 # 마이그레이션 실행
 run_migrations()
 
+# Custom JSON encoder to handle bytes objects
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, bytes):
+            return obj.decode('utf-8')
+        return super().default(obj)
+
+# Custom JSONResponse that uses our encoder
+class CustomJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=CustomJSONEncoder,
+        ).encode("utf-8")
+
 # FastAPI 앱 생성
-app = FastAPI(title="AISSAM API", version="1.0.0")
+app = FastAPI(title="AISSAM API", version="1.0.0", default_response_class=CustomJSONResponse)
 
 # AI 서비스 초기화
 ai_service = AIService()
@@ -191,7 +211,7 @@ def get_db():
 
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(
+    return CustomJSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.errors(), "body": exc.body},
     )
