@@ -528,11 +528,24 @@ async def send_message_with_image(
     db.refresh(ai_message)
     
     return {
-        "id": ai_message.id,
-        "content": ai_message.content,
-        "is_user": ai_message.is_user,
-        "created_at": ai_message.created_at.isoformat(),
-        "image_path": user_message.image_path
+        "user_message": {
+            "id": user_message.id,
+            "session_id": user_message.session_id,
+            "content": user_message.content,
+            "is_user": user_message.is_user,
+            "image_path": user_message.image_path,
+            "image_url": user_message.image_path,
+            "created_at": user_message.created_at.isoformat()
+        },
+        "ai_response": {
+            "id": ai_message.id,
+            "session_id": ai_message.session_id,
+            "content": ai_message.content,
+            "is_user": ai_message.is_user,
+            "image_path": None,
+            "image_url": None,
+            "created_at": ai_message.created_at.isoformat()
+        }
     }
 
 @app.get("/chat-sessions/{session_id}/messages", response_model=List[MessageResponse])

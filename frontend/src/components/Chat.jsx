@@ -315,22 +315,22 @@ const Chat = ({ subject, session, onBack }) => {
               key={index}
               style={{
                 display: 'flex',
-                justifyContent: message.is_ai ? 'flex-start' : 'flex-end',
+                justifyContent: !message.is_user ? 'flex-start' : 'flex-end',
                 marginBottom: '15px'
               }}
             >
               <div style={{
                 maxWidth: '70%',
-                background: message.is_ai 
+                background: !message.is_user 
                   ? 'linear-gradient(135deg, rgba(255, 182, 193, 0.1), rgba(255, 218, 185, 0.1))'
                   : 'linear-gradient(135deg, #4A90E2, #003876)',
-                color: message.is_ai ? '#333' : 'white',
+                color: !message.is_user ? '#333' : 'white',
                 padding: '15px 20px',
-                borderRadius: message.is_ai ? '20px 20px 20px 5px' : '20px 20px 5px 20px',
-                border: message.is_ai ? '2px solid #FFB6C1' : 'none',
+                borderRadius: !message.is_user ? '20px 20px 20px 5px' : '20px 20px 5px 20px',
+                border: !message.is_user ? '2px solid #FFB6C1' : 'none',
                 position: 'relative'
               }}>
-                {message.is_ai && (
+                {!message.is_user && (
                   <div style={{
                     position: 'absolute',
                     top: '-10px',
@@ -349,7 +349,7 @@ const Chat = ({ subject, session, onBack }) => {
                   </div>
                 )}
 
-                {!message.is_ai && (
+                {message.is_user && (
                   <div style={{
                     position: 'absolute',
                     top: '-10px',
@@ -368,7 +368,7 @@ const Chat = ({ subject, session, onBack }) => {
                   </div>
                 )}
 
-                <div style={{ marginTop: message.is_ai ? '15px' : '15px' }}>
+                <div style={{ marginTop: !message.is_user ? '15px' : '15px' }}>
                   {message.image_path && (
                     <div style={{ marginBottom: '10px' }}>
                       <img 
@@ -390,7 +390,7 @@ const Chat = ({ subject, session, onBack }) => {
                     fontSize: '0.8rem',
                     opacity: 0.7,
                     marginTop: '8px',
-                    textAlign: message.is_ai ? 'left' : 'right'
+                    textAlign: !message.is_user ? 'left' : 'right'
                   }}>
                     {new Date(message.created_at).toLocaleTimeString('ko-KR', { 
                       hour: '2-digit', 
