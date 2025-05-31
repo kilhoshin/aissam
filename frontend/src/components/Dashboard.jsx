@@ -43,7 +43,7 @@ const Dashboard = () => {
 
   const fetchSubjects = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -64,7 +64,7 @@ const Dashboard = () => {
 
   const fetchSessions = async (subjectId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/${subjectId}/sessions/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/${subjectId}/sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

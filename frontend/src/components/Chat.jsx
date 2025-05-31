@@ -58,7 +58,7 @@ const Chat = ({ subject, session, onBack }) => {
     
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sessions/${session.id}/messages/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sessions/${session.id}/messages`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -104,7 +104,7 @@ const Chat = ({ subject, session, onBack }) => {
         formData.append('image', imageToSend);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
