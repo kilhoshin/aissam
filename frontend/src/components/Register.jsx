@@ -4,10 +4,11 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    grade: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,8 +41,21 @@ const Register = () => {
       return;
     }
 
+    if (!formData.grade) {
+      setError('학년을 선택해주세요! ');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await register(formData.username, formData.email, formData.password);
+      const registrationData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        grade: formData.grade
+      };
+      
+      await register(registrationData);
       navigate('/dashboard');
     } catch (err) {
       setError('회원가입에 실패했어요. 다시 시도해주세요! ');
@@ -77,14 +91,14 @@ const Register = () => {
         {/* 회원가입 폼 */}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username" className="form-label">
+            <label htmlFor="name" className="form-label">
               사용자명 (지아처럼 귀여운 이름으로!)
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               className="form-input"
               placeholder="지아, 서울대생지아, 등등..."
@@ -106,6 +120,25 @@ const Register = () => {
               placeholder="zia@seoul-university.future"
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="grade" className="form-label">
+              학년 선택
+            </label>
+            <select
+              id="grade"
+              name="grade"
+              value={formData.grade}
+              onChange={handleChange}
+              className="form-input"
+              required
+            >
+              <option value="">학년을 선택해주세요</option>
+              <option value="고1">고등학교 1학년</option>
+              <option value="고2">고등학교 2학년</option>
+              <option value="고3">고등학교 3학년</option>
+            </select>
           </div>
 
           <div className="form-group">

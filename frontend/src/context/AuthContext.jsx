@@ -79,24 +79,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Registration failed:', error)
       console.error('Error response:', error.response?.data)
-      
-      // 더 구체적인 에러 메시지 제공
-      let errorMessage = '회원가입에 실패했습니다.'
-      
-      if (error.response?.status === 400) {
-        if (error.response.data?.detail === 'Email already registered') {
-          errorMessage = '이미 등록된 이메일입니다. 다른 이메일을 사용해주세요.'
-        } else {
-          errorMessage = error.response.data?.detail || '입력 정보를 확인해주세요.'
-        }
-      } else if (error.response?.status === 500) {
-        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-      }
-      
-      return { 
-        success: false, 
-        error: errorMessage
-      }
+      throw error
     }
   }
 
