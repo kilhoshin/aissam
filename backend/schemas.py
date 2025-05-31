@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+from pydantic import BaseModel, EmailStr
 
 # User schemas
 class UserCreate(BaseModel):
