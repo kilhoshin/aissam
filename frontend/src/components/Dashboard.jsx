@@ -127,302 +127,322 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{
+      background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+      minHeight: '100vh',
+      padding: '10px'
+    }}>
       {/* 헤더 */}
-      <div className="nav" style={{ width: '100%', maxWidth: '1200px' }}>
+      <div className="nav" style={{ 
+        width: '100%', 
+        maxWidth: '100%',
+        padding: '0 10px',
+        marginBottom: '20px'
+      }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          gap: '15px'
         }}>
-          <div>
+          <div style={{ flex: '1', minWidth: '200px' }}>
             <h1 style={{ 
-              fontSize: '2rem', 
+              fontSize: 'clamp(1.5rem, 4vw, 2rem)', 
               fontFamily: 'Cute Font, cursive',
-              background: 'linear-gradient(135deg, #003876, #4A90E2)',
+              background: 'linear-gradient(135deg, #8B5A83, #C77DFF)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               margin: 0
             }}>
               🎓 지아의 서울대 튜터
             </h1>
-            <p style={{ color: '#6B7280', margin: '5px 0 0 0' }}>
+            <p style={{ 
+              color: '#8B5A83', 
+              margin: '5px 0 0 0',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)'
+            }}>
               안녕하세요, {user?.name || '지아'}님! 오늘도 화이팅! 💪
             </p>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="btn btn-secondary"
-            style={{ fontSize: '0.9rem', padding: '10px 20px' }}
-          >
-            👋 안녕히 가세요
-          </button>
-        </div>
-      </div>
-
-      {/* 메인 타이틀 */}
-      <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px', textAlign: 'center' }}>
-        <h2 className="main-title" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>
-          지아야 서울대 가자! 🌟
-        </h2>
-        <p className="subtitle" style={{ marginBottom: '20px' }}>
-          꿈을 향한 여정, 함께 걸어가요
-        </p>
-        
-        {/* 격려 메시지 */}
-        <div className="encouragement">
-          {encouragements[Math.floor(Math.random() * encouragements.length)]}
-        </div>
-
-        {/* 진행률 표시 */}
-        <div style={{ margin: '30px 0' }}>
-          <h3 style={{ 
-            color: '#003876', 
-            marginBottom: '15px',
-            fontFamily: 'Cute Font, cursive',
-            fontSize: '1.3rem'
-          }}>
-            📊 지아의 학습 진행률
-          </h3>
-          <div className="progress-container">
-            <div 
-              className="progress-bar" 
-              style={{ width: `${Math.min((subjects.length * 10), 100)}%` }}
-            ></div>
-          </div>
-          <p style={{ fontSize: '0.9rem', color: '#4A90E2', marginTop: '10px' }}>
-            {subjects.length > 0 ? `${subjects.length}개 과목으로 열심히 공부 중! 🔥` : '첫 과목을 선택해보세요! ✨'}
-          </p>
-        </div>
-      </div>
-
-      {error && (
-        <div className="alert alert-error" style={{ maxWidth: '1200px', width: '100%' }}>
-          <span style={{ marginRight: '8px' }}>😅</span>
-          {error}
-        </div>
-      )}
-
-      {/* 과목 선택 섹션 */}
-      <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px' }}>
-        <h3 style={{ 
-          fontSize: '1.8rem',
-          fontFamily: 'Cute Font, cursive',
-          color: '#003876',
-          marginBottom: '25px',
-          textAlign: 'center'
-        }}>
-          📚 어떤 과목을 공부할까요?
-        </h3>
-
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '20px'
-        }}>
-          {subjects.map((subject) => (
-            <div
-              key={subject.id}
-              onClick={() => handleSubjectSelect(subject)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                border: selectedSubject?.id === subject.id ? '3px solid #4A90E2' : '2px solid #E6E6FA',
-                borderRadius: '20px',
-                padding: '25px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textAlign: 'center',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              className="card"
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-5px)';
-                e.target.style.boxShadow = '0 15px 30px rgba(74, 144, 226, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
-              }}
-            >
-              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>
-                {subjectEmojis[subject.name] || '📖'}
-              </div>
-              <h4 style={{ 
-                fontSize: '1.3rem',
-                fontWeight: '600',
-                color: '#003876',
-                marginBottom: '10px'
-              }}>
-                {subject.name}
-              </h4>
-              <p style={{ 
-                color: '#6B7280',
-                fontSize: '0.9rem',
-                lineHeight: '1.4'
-              }}>
-                {subject.description || '열심히 공부해서 서울대 가자!'}
-              </p>
-              
-              {selectedSubject?.id === subject.id && (
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: '#4A90E2',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '30px',
-                  height: '30px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.2rem'
-                }}>
-                  ✓
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 세션 섹션 */}
-      {selectedSubject && (
-        <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px' }}>
+          
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '25px',
+            alignItems: 'center', 
+            gap: '10px',
             flexWrap: 'wrap'
           }}>
-            <h3 style={{ 
-              fontSize: '1.6rem',
-              fontFamily: 'Cute Font, cursive',
-              color: '#003876',
-              margin: 0
+            <div className="encouragement" style={{ 
+              fontSize: 'clamp(0.7rem, 2vw, 0.85rem)',
+              maxWidth: '180px',
+              textAlign: 'center',
+              background: 'rgba(255, 255, 255, 0.7)',
+              padding: '8px 12px',
+              borderRadius: '15px',
+              border: '2px solid rgba(199, 125, 255, 0.3)',
+              color: '#8B5A83'
             }}>
-              💭 {selectedSubject.name} 학습 세션
-            </h3>
+              {encouragements[Math.floor(Math.random() * encouragements.length)]}
+            </div>
+            
             <button
-              onClick={handleNewSession}
-              className="btn btn-primary"
-              style={{ fontSize: '0.9rem', padding: '12px 24px' }}
+              onClick={handleLogout}
+              style={{
+                background: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '20px',
+                padding: '8px 16px',
+                color: '#8B5A83',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 8px 25px rgba(255, 154, 158, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
+              }}
             >
-              ✨ 새로운 공부 시작!
+              로그아웃
             </button>
           </div>
-
-          {sessions.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px',
-              background: 'rgba(255, 182, 193, 0.1)',
-              borderRadius: '15px',
-              border: '2px dashed #FFB6C1'
-            }}>
-              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📝</div>
-              <p style={{ 
-                fontSize: '1.1rem',
-                color: '#4A90E2',
-                fontFamily: 'Cute Font, cursive'
-              }}>
-                첫 번째 {selectedSubject.name} 공부를 시작해보세요!
-              </p>
-              <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '10px' }}>
-                궁금한 것들을 AI 선생님과 함께 해결해봐요 ✨
-              </p>
-            </div>
-          ) : (
-            <div style={{ 
-              display: 'grid', 
-              gap: '15px'
-            }}>
-              {sessions.map((session) => (
-                <div
-                  key={session.id}
-                  onClick={() => handleSessionSelect(session)}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    border: '2px solid #E6E6FA',
-                    borderRadius: '15px',
-                    padding: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.borderColor = '#4A90E2';
-                    e.target.style.transform = 'translateX(5px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.borderColor = '#E6E6FA';
-                    e.target.style.transform = 'translateX(0)';
-                  }}
-                >
-                  <div>
-                    <h4 style={{ 
-                      color: '#003876',
-                      marginBottom: '5px',
-                      fontSize: '1.1rem'
-                    }}>
-                      💬 {session.title || `${selectedSubject.name} 공부`}
-                    </h4>
-                    <p style={{ 
-                      color: '#6B7280',
-                      fontSize: '0.9rem',
-                      margin: 0
-                    }}>
-                      {new Date(session.created_at).toLocaleDateString('ko-KR')} 📅
-                    </p>
-                  </div>
-                  <div style={{ fontSize: '1.5rem' }}>→</div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
-      )}
-
-      {/* 떠다니는 응원 메시지들 */}
-      <div style={{ 
-        position: 'fixed',
-        bottom: '30px',
-        left: '30px',
-        background: 'rgba(255, 182, 193, 0.9)',
-        padding: '15px 20px',
-        borderRadius: '25px',
-        border: '2px solid #FFB6C1',
-        maxWidth: '200px',
-        fontSize: '0.85rem',
-        fontFamily: 'Cute Font, cursive',
-        color: '#003876',
-        animation: 'bounce 4s ease-in-out infinite',
-        zIndex: 1000
-      }}>
-        🎯 목표: 서울대 입학!
       </div>
 
-      <div style={{ 
-        position: 'fixed',
-        top: '50%',
-        right: '30px',
-        background: 'rgba(176, 224, 230, 0.9)',
-        padding: '15px 20px',
-        borderRadius: '25px',
-        border: '2px solid #B0E0E6',
-        maxWidth: '180px',
-        fontSize: '0.85rem',
-        fontFamily: 'Cute Font, cursive',
-        color: '#003876',
-        animation: 'float 5s ease-in-out infinite',
-        zIndex: 1000
+      {/* 메인 컨텐츠 */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '25px',
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '0 auto'
       }}>
-        ✨ 지아는 할 수 있어!
+        {/* 과목 선택 섹션 */}
+        <div style={{
+          width: '100%',
+          background: 'rgba(255, 255, 255, 0.8)',
+          borderRadius: '25px',
+          padding: '25px',
+          border: '3px solid rgba(199, 125, 255, 0.2)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 15px 35px rgba(255, 154, 158, 0.2)'
+        }}>
+          <h2 style={{ 
+            fontSize: 'clamp(1.3rem, 3vw, 1.8rem)',
+            fontFamily: 'Cute Font, cursive',
+            color: '#8B5A83',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            📚 어떤 과목을 공부할까요?
+          </h2>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '15px',
+            marginBottom: '20px'
+          }}>
+            {subjects.map((subject) => (
+              <button
+                key={subject.id}
+                onClick={() => handleSubjectSelect(subject)}
+                style={{
+                  background: selectedSubject?.id === subject.id 
+                    ? 'linear-gradient(135deg, #ff9a9e, #fad0c4)'
+                    : 'rgba(255, 255, 255, 0.9)',
+                  border: selectedSubject?.id === subject.id 
+                    ? '3px solid #C77DFF' 
+                    : '2px solid rgba(199, 125, 255, 0.3)',
+                  borderRadius: '20px',
+                  padding: '20px 15px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  minHeight: '80px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedSubject?.id !== subject.id) {
+                    e.target.style.transform = 'translateY(-5px)';
+                    e.target.style.boxShadow = '0 10px 25px rgba(255, 154, 158, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedSubject?.id !== subject.id) {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
+                  {subjectEmojis[subject.name] || '📖'}
+                </span>
+                <span style={{ 
+                  fontWeight: '600', 
+                  color: '#8B5A83',
+                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)'
+                }}>
+                  {subject.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 세션 목록 */}
+        {selectedSubject && (
+          <div style={{
+            width: '100%',
+            background: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '25px',
+            padding: '25px',
+            border: '3px solid rgba(199, 125, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 15px 35px rgba(255, 154, 158, 0.2)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '20px',
+              flexWrap: 'wrap',
+              gap: '15px'
+            }}>
+              <h3 style={{ 
+                fontSize: 'clamp(1.2rem, 3vw, 1.5rem)',
+                fontFamily: 'Cute Font, cursive',
+                color: '#8B5A83',
+                margin: 0
+              }}>
+                {subjectEmojis[selectedSubject.name]} {selectedSubject.name} 대화 기록
+              </h3>
+              
+              <button
+                onClick={handleNewSession}
+                style={{
+                  background: 'linear-gradient(135deg, #C77DFF, #E0AAFF)',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '12px 20px',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 5px 15px rgba(199, 125, 255, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(199, 125, 255, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(199, 125, 255, 0.3)';
+                }}
+              >
+                ✨ 새로 시작하기
+              </button>
+            </div>
+
+            {sessions.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                background: 'rgba(255, 182, 193, 0.1)',
+                borderRadius: '20px',
+                border: '2px dashed rgba(199, 125, 255, 0.3)'
+              }}>
+                <div style={{ fontSize: 'clamp(2rem, 6vw, 3rem)', marginBottom: '15px' }}>🌸</div>
+                <p style={{ 
+                  color: '#8B5A83', 
+                  fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)',
+                  lineHeight: '1.6'
+                }}>
+                  아직 {selectedSubject.name} 대화가 없어요!<br />
+                  <span style={{ fontWeight: '600' }}>새로 시작하기</span>를 눌러 첫 질문을 해보세요! 💕
+                </p>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '15px'
+              }}>
+                {sessions.map((session) => (
+                  <button
+                    key={session.id}
+                    onClick={() => handleSessionSelect(session)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      border: '2px solid rgba(199, 125, 255, 0.3)',
+                      borderRadius: '20px',
+                      padding: '20px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-3px)';
+                      e.target.style.boxShadow = '0 10px 25px rgba(255, 154, 158, 0.3)';
+                      e.target.style.borderColor = '#C77DFF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = 'none';
+                      e.target.style.borderColor = 'rgba(199, 125, 255, 0.3)';
+                    }}
+                  >
+                    <h4 style={{ 
+                      margin: '0 0 10px 0', 
+                      color: '#8B5A83',
+                      fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)',
+                      fontWeight: '600'
+                    }}>
+                      {session.title}
+                    </h4>
+                    <div style={{ 
+                      fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', 
+                      color: '#999',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '5px'
+                    }}>
+                      <span>💬 {session.message_count}개 메시지</span>
+                      <span>{new Date(session.created_at).toLocaleDateString('ko-KR')}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.9)',
+            border: '2px solid #FF6B6B',
+            borderRadius: '20px',
+            padding: '20px',
+            color: '#FF6B6B',
+            textAlign: 'center',
+            width: '100%',
+            fontSize: 'clamp(0.9rem, 2.5vw, 1rem)'
+          }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

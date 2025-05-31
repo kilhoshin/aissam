@@ -187,440 +187,509 @@ const Chat = ({ subject, session, onBack }) => {
   };
 
   return (
-    <div className="page-container" style={{ height: '100vh', maxHeight: '100vh' }}>
+    <div style={{ 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '10px',
+      fontFamily: 'Cute Font, Arial, sans-serif'
+    }}>
       {/* 헤더 */}
-      <div className="nav" style={{ 
-        width: '100%', 
-        maxWidth: '1000px',
-        flexShrink: 0,
-        borderBottom: '2px solid #E6E6FA'
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.85)',
+        borderRadius: '20px',
+        padding: '15px 20px',
+        marginBottom: '15px',
+        border: '2px solid rgba(199, 125, 255, 0.3)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 8px 25px rgba(255, 154, 158, 0.2)'
       }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          gap: '10px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: '1', minWidth: '200px' }}>
             <button
               onClick={onBack}
               style={{
-                background: 'rgba(255, 182, 193, 0.2)',
-                border: '2px solid #FFB6C1',
-                borderRadius: '50%',
-                width: '45px',
-                height: '45px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+                borderRadius: '15px',
+                padding: '8px 12px',
                 cursor: 'pointer',
-                fontSize: '1.2rem',
+                color: '#8B5A83',
+                fontWeight: '600',
+                fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                 transition: 'all 0.3s ease'
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 182, 193, 0.4)';
-                e.target.style.transform = 'scale(1.1)';
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 5px 15px rgba(255, 154, 158, 0.4)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 182, 193, 0.2)';
                 e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
               }}
             >
-              ←
+              ← 뒤로가기
             </button>
+            
             <div>
-              <h1 style={{ 
-                fontSize: '1.8rem', 
+              <h2 style={{ 
+                margin: 0, 
+                color: '#8B5A83',
+                fontSize: 'clamp(1.2rem, 3vw, 1.6rem)',
                 fontFamily: 'Cute Font, cursive',
-                background: 'linear-gradient(135deg, #003876, #4A90E2)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                margin: 0
+                fontWeight: '600'
               }}>
-                {subjectEmojis[subject?.name] || '📚'} {subject?.name || '학습'} 튜터
-              </h1>
-              <p style={{ color: '#6B7280', margin: '5px 0 0 0', fontSize: '0.9rem' }}>
-                지아와 함께하는 서울대 준비! ✨
+                {subjectEmojis[subject?.name] || '📚'} {subject?.name || '공부하기'}
+              </h2>
+              <p style={{ 
+                margin: '2px 0 0 0', 
+                color: '#C77DFF',
+                fontSize: 'clamp(0.75rem, 2vw, 0.9rem)'
+              }}>
+                AI 선생님과 함께 공부해요! 💕
               </p>
             </div>
           </div>
           
-          <div className="encouragement" style={{ 
-            fontSize: '0.85rem',
-            maxWidth: '200px',
-            textAlign: 'right'
+          <div style={{
+            background: 'rgba(199, 125, 255, 0.1)',
+            padding: '8px 15px',
+            borderRadius: '15px',
+            border: '2px solid rgba(199, 125, 255, 0.3)',
+            fontSize: 'clamp(0.7rem, 1.8vw, 0.8rem)',
+            color: '#8B5A83',
+            textAlign: 'center'
           }}>
-            {encouragements[Math.floor(Math.random() * encouragements.length)]}
+            💬 {messages.length}개 메시지
           </div>
         </div>
       </div>
 
-      {/* 메시지 영역 */}
+      {/* 채팅 영역 */}
       <div style={{
         flex: 1,
-        width: '100%',
-        maxWidth: '1000px',
-        background: 'rgba(255, 255, 255, 0.7)',
-        borderRadius: '20px 20px 0 0',
-        border: '2px solid #E6E6FA',
-        borderBottom: 'none',
+        background: 'rgba(255, 255, 255, 0.85)',
+        borderRadius: '20px',
+        border: '2px solid rgba(199, 125, 255, 0.3)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 8px 25px rgba(255, 154, 158, 0.2)',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        marginBottom: '15px'
       }}>
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px'
-        }}>
-          {loading && (
-            <div style={{ textAlign: 'center', padding: '20px' }}>
-              <div className="loading" style={{ marginBottom: '10px' }}></div>
-              <p style={{ color: '#4A90E2' }}>메시지를 불러오는 중이에요... ✨</p>
-            </div>
-          )}
-
-          {!loading && messages.length === 0 && (
+        {/* 메시지 영역 */}
+        <div 
+          ref={messagesEndRef}
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '20px',
+            minHeight: '0'
+          }}
+        >
+          {loading && messages.length === 0 ? (
             <div style={{
-              textAlign: 'center',
-              padding: '40px',
-              background: 'rgba(255, 182, 193, 0.1)',
-              borderRadius: '20px',
-              border: '2px dashed #FFB6C1'
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '200px',
+              flexDirection: 'column',
+              gap: '15px'
             }}>
-              <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🤖💕</div>
-              <h3 style={{ 
-                fontSize: '1.5rem',
-                fontFamily: 'Cute Font, cursive',
-                color: '#003876',
-                marginBottom: '15px'
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid rgba(199, 125, 255, 0.3)',
+                borderTop: '4px solid #C77DFF',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <p style={{ 
+                color: '#8B5A83',
+                fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+                textAlign: 'center'
               }}>
-                안녕 지아! 반가워! 🌟
-              </h3>
-              <p style={{ color: '#6B7280', fontSize: '1rem', lineHeight: '1.6' }}>
-                무엇이든 궁금한 게 있으면 물어봐!<br />
-                수학 문제든 영어 단어든 모든 걸 도와줄게 ✨<br />
-                <span style={{ fontWeight: '600', color: '#4A90E2' }}>
-                  서울대 가는 그날까지 함께 하자! 💪
-                </span>
+                메시지를 불러오고 있어요... 🌸
               </p>
             </div>
-          )}
-
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                justifyContent: !message.is_user ? 'flex-start' : 'flex-end',
-                marginBottom: '15px'
-              }}
-            >
-              <div style={{
-                maxWidth: '70%',
-                background: !message.is_user 
-                  ? 'linear-gradient(135deg, rgba(255, 182, 193, 0.1), rgba(255, 218, 185, 0.1))'
-                  : 'linear-gradient(135deg, #4A90E2, #003876)',
-                color: !message.is_user ? '#333' : 'white',
-                padding: '15px 20px',
-                borderRadius: !message.is_user ? '20px 20px 20px 5px' : '20px 20px 5px 20px',
-                border: !message.is_user ? '2px solid #FFB6C1' : 'none',
-                position: 'relative'
+          ) : messages.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px 20px',
+              background: 'rgba(255, 182, 193, 0.1)',
+              borderRadius: '20px',
+              border: '2px dashed rgba(199, 125, 255, 0.3)',
+              margin: '20px 0'
+            }}>
+              <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: '20px' }}>🌸</div>
+              <h3 style={{ 
+                color: '#8B5A83',
+                marginBottom: '15px',
+                fontSize: 'clamp(1.1rem, 3vw, 1.4rem)',
+                fontFamily: 'Cute Font, cursive'
               }}>
-                {!message.is_user && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    left: '15px',
-                    background: 'white',
-                    border: '2px solid #FFB6C1',
-                    borderRadius: '50%',
-                    width: '30px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem'
-                  }}>
-                    🤖
-                  </div>
-                )}
-
-                {message.is_user && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    right: '15px',
-                    background: 'white',
-                    border: '2px solid #4A90E2',
-                    borderRadius: '50%',
-                    width: '30px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem'
-                  }}>
-                    👩‍🎓
-                  </div>
-                )}
-
-                <div style={{ marginTop: !message.is_user ? '15px' : '15px' }}>
-                  {message.image_path && (
-                    <div style={{ marginBottom: '10px' }}>
-                      <img 
-                        src={message.image_path} 
-                        alt="Uploaded" 
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '300px',
-                          borderRadius: '10px',
-                          border: '2px solid rgba(255, 255, 255, 0.3)'
-                        }}
-                      />
+                첫 대화를 시작해보세요!
+              </h3>
+              <p style={{ 
+                color: '#C77DFF',
+                lineHeight: '1.6',
+                fontSize: 'clamp(0.9rem, 2.5vw, 1rem)'
+              }}>
+                궁금한 것을 물어보면 AI 선생님이<br />
+                친절하게 설명해드릴게요! ✨
+              </p>
+            </div>
+          ) : (
+            messages.map((message, index) => (
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  justifyContent: !message.is_user ? 'flex-start' : 'flex-end',
+                  marginBottom: '20px'
+                }}
+              >
+                <div style={{
+                  maxWidth: 'min(85%, 500px)',
+                  background: !message.is_user 
+                    ? 'linear-gradient(135deg, rgba(255, 182, 193, 0.15), rgba(255, 218, 185, 0.15))'
+                    : 'linear-gradient(135deg, #C77DFF, #E0AAFF)',
+                  color: !message.is_user ? '#8B5A83' : 'white',
+                  padding: '18px 22px',
+                  borderRadius: !message.is_user ? '25px 25px 25px 8px' : '25px 25px 8px 25px',
+                  border: !message.is_user ? '2px solid rgba(255, 182, 193, 0.4)' : 'none',
+                  position: 'relative',
+                  boxShadow: !message.is_user 
+                    ? '0 5px 15px rgba(255, 182, 193, 0.2)' 
+                    : '0 5px 15px rgba(199, 125, 255, 0.3)'
+                }}>
+                  {!message.is_user && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      left: '20px',
+                      background: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+                      border: '3px solid white',
+                      borderRadius: '50%',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 'clamp(1rem, 3vw, 1.2rem)',
+                      boxShadow: '0 3px 10px rgba(255, 154, 158, 0.3)'
+                    }}>
+                      🤖
                     </div>
                   )}
-                  
-                  <MathRenderer content={message.content} />
-                  
-                  <div style={{
-                    fontSize: '0.8rem',
-                    opacity: 0.7,
-                    marginTop: '8px',
-                    textAlign: !message.is_user ? 'left' : 'right'
-                  }}>
-                    {new Date(message.created_at).toLocaleTimeString('ko-KR', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+
+                  {message.is_user && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      right: '20px',
+                      background: 'linear-gradient(135deg, #E0AAFF, #C77DFF)',
+                      border: '3px solid white',
+                      borderRadius: '50%',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 'clamp(1rem, 3vw, 1.2rem)',
+                      boxShadow: '0 3px 10px rgba(199, 125, 255, 0.3)'
+                    }}>
+                      👩‍🎓
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: '18px' }}>
+                    {message.image_path && (
+                      <div style={{ marginBottom: '15px' }}>
+                        <img 
+                          src={message.image_path} 
+                          alt="업로드된 이미지" 
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '250px',
+                            borderRadius: '15px',
+                            border: '3px solid rgba(255, 255, 255, 0.5)',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <MathRenderer content={message.content} />
+                    
+                    <div style={{
+                      fontSize: 'clamp(0.7rem, 1.8vw, 0.8rem)',
+                      opacity: 0.8,
+                      marginTop: '12px',
+                      textAlign: !message.is_user ? 'left' : 'right'
+                    }}>
+                      {new Date(message.created_at).toLocaleTimeString('ko-KR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
 
           {sending && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-start',
+              marginBottom: '20px'
+            }}>
               <div style={{
-                background: 'rgba(255, 182, 193, 0.1)',
-                border: '2px solid #FFB6C1',
-                borderRadius: '20px 20px 20px 5px',
-                padding: '15px 20px',
-                position: 'relative'
+                background: 'linear-gradient(135deg, rgba(255, 182, 193, 0.15), rgba(255, 218, 185, 0.15))',
+                border: '2px solid rgba(255, 182, 193, 0.4)',
+                borderRadius: '25px 25px 25px 8px',
+                padding: '18px 22px',
+                position: 'relative',
+                maxWidth: 'min(85%, 500px)'
               }}>
                 <div style={{
                   position: 'absolute',
-                  top: '-10px',
-                  left: '15px',
-                  background: 'white',
-                  border: '2px solid #FFB6C1',
+                  top: '-12px',
+                  left: '20px',
+                  background: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+                  border: '3px solid white',
                   borderRadius: '50%',
-                  width: '30px',
-                  height: '30px',
+                  width: '35px',
+                  height: '35px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '1rem'
+                  fontSize: '1.2rem'
                 }}>
                   🤖
                 </div>
-                <div style={{ marginTop: '15px' }}>
-                  <div className="loading" style={{ marginBottom: '5px' }}></div>
-                  <span style={{ color: '#4A90E2', fontSize: '0.9rem' }}>
-                    지아의 질문을 열심히 생각하고 있어요... 💭
-                  </span>
+                
+                <div style={{ marginTop: '18px' }}>
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#C77DFF',
+                      animation: 'bounce 1.4s ease-in-out infinite both'
+                    }}></div>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#C77DFF',
+                      animation: 'bounce 1.4s ease-in-out 0.2s infinite both'
+                    }}></div>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#C77DFF',
+                      animation: 'bounce 1.4s ease-in-out 0.4s infinite both'
+                    }}></div>
+                    <span style={{ 
+                      marginLeft: '10px',
+                      color: '#8B5A83',
+                      fontSize: 'clamp(0.8rem, 2vw, 0.9rem)'
+                    }}>
+                      답변을 생각하고 있어요...
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
-
-        {/* 이미지 미리보기 */}
-        {imagePreview && (
-          <div style={{
-            padding: '15px 20px',
-            borderTop: '1px solid #E6E6FA'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              background: 'rgba(255, 255, 255, 0.9)',
-              padding: '10px',
-              borderRadius: '10px',
-              border: '2px solid #E6E6FA'
-            }}>
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  objectFit: 'cover',
-                  borderRadius: '8px'
-                }}
-              />
-              <span style={{ flex: 1, fontSize: '0.9rem', color: '#4A90E2' }}>
-                📷 이미지가 첨부되었어요!
-              </span>
-              <button
-                onClick={removeImage}
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '2px solid #EF4444',
-                  borderRadius: '50%',
-                  width: '30px',
-                  height: '30px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#EF4444',
-                  fontSize: '1rem'
-                }}
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* 입력 영역 */}
         <div style={{
           padding: '20px',
-          borderTop: '2px solid #E6E6FA',
-          background: 'rgba(255, 255, 255, 0.9)'
+          borderTop: '2px solid rgba(199, 125, 255, 0.2)',
+          background: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(5px)'
         }}>
           <div style={{
             display: 'flex',
-            gap: '10px',
-            alignItems: 'flex-end'
+            flexDirection: 'column',
+            gap: '15px'
           }}>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageSelect}
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
-            
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                background: 'rgba(255, 182, 193, 0.2)',
-                border: '2px solid #FFB6C1',
-                borderRadius: '50%',
-                width: '45px',
-                height: '45px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                transition: 'all 0.3s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 182, 193, 0.4)';
-                e.target.style.transform = 'scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 182, 193, 0.2)';
-                e.target.style.transform = 'scale(1)';
-              }}
-            >
-              📷
-            </button>
+            {/* 이미지 업로드 영역 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              flexWrap: 'wrap'
+            }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+              />
+              
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+                  border: '2px solid rgba(255, 255, 255, 0.5)',
+                  borderRadius: '15px',
+                  padding: '12px 18px',
+                  cursor: 'pointer',
+                  color: '#8B5A83',
+                  fontWeight: '600',
+                  fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(255, 154, 158, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                📷 이미지 추가
+              </button>
+              
+              {selectedImage && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  background: 'rgba(199, 125, 255, 0.1)',
+                  padding: '8px 15px',
+                  borderRadius: '15px',
+                  border: '2px solid rgba(199, 125, 255, 0.3)'
+                }}>
+                  <span style={{ 
+                    color: '#8B5A83',
+                    fontSize: 'clamp(0.75rem, 2vw, 0.85rem)'
+                  }}>
+                    📷 {selectedImage.name}
+                  </span>
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#FF6B6B',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="지아야, 궁금한 게 있으면 언제든 물어봐! ✨"
-              disabled={sending}
-              style={{
-                flex: 1,
-                minHeight: '45px',
-                maxHeight: '120px',
-                padding: '12px 20px',
-                border: '2px solid #E6E6FA',
-                borderRadius: '25px',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                background: 'rgba(255, 255, 255, 0.9)',
-                resize: 'none',
-                outline: 'none',
-                transition: 'all 0.3s ease'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#4A90E2';
-                e.target.style.boxShadow = '0 0 0 3px rgba(74, 144, 226, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#E6E6FA';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-
-            <button
-              onClick={handleSendMessage}
-              disabled={sending || (!newMessage.trim() && !selectedImage)}
-              style={{
-                background: (!newMessage.trim() && !selectedImage) 
-                  ? 'rgba(200, 200, 200, 0.5)' 
-                  : 'linear-gradient(135deg, #4A90E2, #003876)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '45px',
-                height: '45px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: (!newMessage.trim() && !selectedImage) ? 'not-allowed' : 'pointer',
-                fontSize: '1.2rem',
-                color: 'white',
-                transition: 'all 0.3s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                if (!(!newMessage.trim() && !selectedImage)) {
-                  e.target.style.transform = 'scale(1.1)';
-                  e.target.style.boxShadow = '0 5px 15px rgba(74, 144, 226, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = 'none';
-              }}
-            >
-              {sending ? '⏳' : '🚀'}
-            </button>
+            {/* 메시지 입력 및 전송 */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'flex-end'
+            }}>
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="궁금한 것을 물어보세요! (Shift+Enter로 줄바꿈)"
+                style={{
+                  flex: 1,
+                  minHeight: '60px',
+                  maxHeight: '120px',
+                  padding: '15px 20px',
+                  border: '2px solid rgba(199, 125, 255, 0.3)',
+                  borderRadius: '20px',
+                  outline: 'none',
+                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+                  fontFamily: 'inherit',
+                  color: '#8B5A83',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  resize: 'none',
+                  lineHeight: '1.4',
+                  transition: 'all 0.3s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#C77DFF';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(199, 125, 255, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(199, 125, 255, 0.3)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+              
+              <button
+                onClick={handleSendMessage}
+                disabled={sending || (!newMessage.trim() && !selectedImage)}
+                style={{
+                  background: sending || (!newMessage.trim() && !selectedImage)
+                    ? 'rgba(199, 125, 255, 0.3)'
+                    : 'linear-gradient(135deg, #C77DFF, #E0AAFF)',
+                  border: 'none',
+                  borderRadius: '18px',
+                  padding: '15px 20px',
+                  cursor: sending || (!newMessage.trim() && !selectedImage) ? 'not-allowed' : 'pointer',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+                  transition: 'all 0.3s ease',
+                  minWidth: '70px',
+                  height: '60px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: sending || (!newMessage.trim() && !selectedImage)
+                    ? 'none'
+                    : '0 5px 15px rgba(199, 125, 255, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!sending && (newMessage.trim() || selectedImage)) {
+                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.boxShadow = '0 8px 25px rgba(199, 125, 255, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = sending || (!newMessage.trim() && !selectedImage)
+                    ? 'none'
+                    : '0 5px 15px rgba(199, 125, 255, 0.3)';
+                }}
+              >
+                {sending ? '⏳' : '📤'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* 떠다니는 응원 메시지 */}
-      <div style={{ 
-        position: 'fixed',
-        bottom: '100px',
-        right: '30px',
-        background: 'rgba(176, 224, 230, 0.9)',
-        padding: '12px 18px',
-        borderRadius: '20px',
-        border: '2px solid #B0E0E6',
-        maxWidth: '150px',
-        fontSize: '0.8rem',
-        fontFamily: 'Cute Font, cursive',
-        color: '#003876',
-        animation: 'float 6s ease-in-out infinite',
-        zIndex: 1000
-      }}>
-        💪 화이팅 지아!
       </div>
     </div>
   );
