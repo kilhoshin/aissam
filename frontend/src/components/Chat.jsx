@@ -1,443 +1,609 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { Send, Image, ArrowLeft, GraduationCap, Upload, X, Sparkles, Bot, User, Camera } from 'lucide-react'
-import axios from 'axios'
-import MathRenderer from './MathRenderer'
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import MathRenderer from './MathRenderer';
 
-export default function Chat() {
-  const { sessionId } = useParams()
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const [messages, setMessages] = useState([])
-  const [newMessage, setNewMessage] = useState('')
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [sending, setSending] = useState(false)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const messagesEndRef = useRef(null)
-  const fileInputRef = useRef(null)
-  const cameraInputRef = useRef(null)
+const Chat = ({ subject, session, onBack }) => {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const encouragements = [
+    "지아야 궁금한 게 있으면 언제든 물어봐! 🌟",
+    "어려운 문제도 차근차근 해결해보자! 💪",
+    "서울대 가는 길, 함께 걸어가자! ✨",
+    "포기하지 말고 계속해봐! 지아는 할 수 있어! 💕"
+  ];
+
+  const subjectEmojis = {
+    '수학': '🔢',
+    '영어': '🇺🇸',
+    '국어': '📖',
+    '과학': '🧪',
+    '사회': '🌍',
+    '물리': '⚛️',
+    '화학': '🧬',
+    '생물': '🌱',
+    '지구과학': '🌎',
+    '한국사': '📜',
+    '세계사': '🏺',
+    '지리': '🗺️'
+  };
 
   useEffect(() => {
-    fetchSession()
-    fetchMessages()
-  }, [sessionId])
+    if (session) {
+      fetchMessages();
+    }
+    scrollToBottom();
+  }, [session]);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  const fetchSession = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      
-      if (!token) {
-        console.error('No token found')
-        navigate('/login')
-        return
-      }
-      
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-      const response = await axios.get(`/chat-sessions/${sessionId}`, config)
-      setSession(response.data)
-    } catch (error) {
-      console.error('Error fetching session:', error)
-      // 임시 세션 데이터 설정
-      setSession({
-        id: sessionId,
-        title: "AI 튜터와의 대화",
-        subject: { name: "학습", color: "#8B5CF6" }
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const fetchMessages = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      
-      if (!token) {
-        console.error('No token found')
-        navigate('/login')
-        return
-      }
-      
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-      const response = await axios.get(`/chat-sessions/${sessionId}/messages`, config)
-      setMessages(response.data)
-    } catch (error) {
-      console.error('Failed to fetch messages:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleImageSelect = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      setSelectedImage(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleCameraCapture = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      setSelectedImage(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const removeImage = () => {
-    setSelectedImage(null)
-    setImagePreview(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = ''
-    }
-  }
-
-  const sendMessage = async (e) => {
-    e.preventDefault()
-    if ((!newMessage.trim() && !selectedImage) || sending) return
-
-    setSending(true)
+    if (!session) return;
     
     try {
-      const token = localStorage.getItem('token')
-      
-      if (!token) {
-        console.error('No token found')
-        navigate('/login')
-        return
-      }
-      
-      const config = {
-        headers: { 
-          Authorization: `Bearer ${token}`
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sessions/${session.id}/messages/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-      const formData = new FormData()
-      formData.append('content', newMessage.trim())
-      if (selectedImage) {
-        formData.append('image', selectedImage)
-      }
-
-      const response = await axios.post(`/chat-sessions/${sessionId}/messages`, formData, config)
-
-      // Add user message immediately
-      const userMessage = {
-        id: Date.now(),
-        content: newMessage.trim(),
-        is_user: true,
-        created_at: new Date().toISOString(),
-        image_url: imagePreview
-      }
+      });
       
-      setMessages(prev => [...prev, userMessage])
-      setNewMessage('')
-      removeImage()
-
-      // Add AI response
-      if (response.data) {
-        setMessages(prev => [...prev, response.data])
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data);
       }
     } catch (error) {
-      console.error('❌ Failed to send message:', error)
-      console.error('📋 Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers
-      })
-      console.error('📤 Request details:', {
-        url: `/chat-sessions/${sessionId}/messages`,
-        formData: {
-          content: newMessage.trim(),
-          hasImage: !!selectedImage,
-          imageType: selectedImage?.type,
-          imageSize: selectedImage?.size
-        }
-      })
+      console.error('메시지를 불러오는데 실패했어요 😔', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() && !selectedImage) return;
+    if (sending) return;
+
+    setSending(true);
+    const messageText = newMessage.trim();
+    const imageToSend = selectedImage;
+
+    // 메시지 입력 필드 즉시 클리어
+    setNewMessage('');
+    setSelectedImage(null);
+    setImagePreview(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('content', messageText);
       
-      // Handle specific error cases
-      if (error.response?.status === 401) {
-        console.error('Authentication failed, redirecting to login')
-        localStorage.removeItem('token')
-        navigate('/login')
-      } else if (error.response?.status === 422) {
-        console.error('Validation error:', error.response?.data)
-        alert(`입력 검증 오류: ${JSON.stringify(error.response?.data?.detail || '알 수 없는 오류')}`)
+      if (subject) {
+        formData.append('subject_id', subject.id);
+      }
+      
+      if (session) {
+        formData.append('session_id', session.id);
+      }
+      
+      if (imageToSend) {
+        formData.append('image', imageToSend);
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(prev => [...prev, data.user_message, data.ai_response]);
       } else {
-        // Show error message to user
-        alert('메시지 전송에 실패했습니다. 다시 시도해주세요.')
+        console.error('메시지 전송에 실패했어요 😔');
+        // 실패 시 메시지 복구
+        setNewMessage(messageText);
+        setSelectedImage(imageToSend);
+        if (imageToSend) {
+          const reader = new FileReader();
+          reader.onload = (e) => setImagePreview(e.target.result);
+          reader.readAsDataURL(imageToSend);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // 실패 시 메시지 복구
+      setNewMessage(messageText);
+      setSelectedImage(imageToSend);
+      if (imageToSend) {
+        const reader = new FileReader();
+        reader.onload = (e) => setImagePreview(e.target.result);
+        reader.readAsDataURL(imageToSend);
       }
     } finally {
-      setSending(false)
+      setSending(false);
     }
-  }
+  };
 
-  const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-purple-600 font-medium text-lg">AI 선생님과 연결중...</p>
-        </div>
-      </div>
-    )
-  }
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-purple-200/50 shadow-lg">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Link
-                to="/dashboard"
-                className="mr-4 p-3 hover:bg-purple-50 rounded-2xl transition-all duration-300 hover:scale-105"
-              >
-                <ArrowLeft className="h-6 w-6 text-purple-600" />
-              </Link>
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl shadow-lg">
-                {session?.subject?.icon === 'calculator' ? (
-                  <span className="text-xl">📐</span>
-                ) : session?.subject?.icon === 'globe' ? (
-                  <span className="text-xl">🔤</span>
-                ) : session?.subject?.icon === 'book' ? (
-                  <span className="text-xl">📚</span>
-                ) : session?.subject?.icon === 'building' ? (
-                  <span className="text-xl">🏛️</span>
-                ) : session?.subject?.icon === 'beaker' ? (
-                  <span className="text-xl">🔬</span>
-                ) : (
-                  <GraduationCap className="h-6 w-6 text-white" />
-                )}
-              </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {session?.subject?.name || '과목'} AI 튜터
-                </h1>
-                <p className="text-sm text-purple-600 font-medium flex items-center">
-                  <Sparkles className="h-4 w-4 mr-1" />
-                  24시간 개인 맞춤 학습
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="bg-green-100 px-3 py-1 rounded-full">
-                <span className="text-green-700 text-sm font-medium">• 온라인</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-3xl w-24 h-24 mx-auto mb-8 flex items-center justify-center shadow-lg">
-              <Bot className="h-12 w-12 text-purple-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              안녕하세요! 😊
-            </h3>
-            <p className="text-xl text-gray-600 mb-8 max-w-md mx-auto">
-              저는 <span className="font-semibold text-purple-600">{session?.subject?.name}</span> AI 튜터입니다.<br />
-              무엇이든 질문해주세요!
-            </p>
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-3xl max-w-lg mx-auto border border-purple-200/50 shadow-xl">
-              <div className="flex items-center justify-center mb-4">
-                <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
-                <span className="font-bold text-purple-700">학습 팁</span>
-              </div>
-              <p className="text-purple-800 leading-relaxed">
-                📸 <strong>사진 업로드:</strong> 갤러리에서 문제 사진을 선택하세요<br />
-                📱 <strong>카메라 촬영:</strong> 바로 카메라로 문제를 찍어보세요<br />
-                ✨ <strong>단계별 질문:</strong> 모르는 부분을 구체적으로 물어보세요<br />
-                🎯 <strong>개념 정리:</strong> 이해가 안 되는 개념을 설명해드려요
+    <div className="page-container" style={{ height: '100vh', maxHeight: '100vh' }}>
+      {/* 헤더 */}
+      <div className="nav" style={{ 
+        width: '100%', 
+        maxWidth: '1000px',
+        flexShrink: 0,
+        borderBottom: '2px solid #E6E6FA'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button
+              onClick={onBack}
+              style={{
+                background: 'rgba(255, 182, 193, 0.2)',
+                border: '2px solid #FFB6C1',
+                borderRadius: '50%',
+                width: '45px',
+                height: '45px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 182, 193, 0.4)';
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 182, 193, 0.2)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ←
+            </button>
+            <div>
+              <h1 style={{ 
+                fontSize: '1.8rem', 
+                fontFamily: 'Cute Font, cursive',
+                background: 'linear-gradient(135deg, #003876, #4A90E2)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0
+              }}>
+                {subjectEmojis[subject?.name] || '📚'} {subject?.name || '학습'} 튜터
+              </h1>
+              <p style={{ color: '#6B7280', margin: '5px 0 0 0', fontSize: '0.9rem' }}>
+                지아와 함께하는 서울대 준비! ✨
               </p>
             </div>
           </div>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={message.id}
-              className={`flex ${message.is_user ? 'justify-end' : 'justify-start'} ${index === 0 ? 'mt-0' : ''}`}
-            >
-              {!message.is_user && (
-                <div className="mr-3 mt-1">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Bot className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              )}
-              <div
-                className={`${
-                  message.is_user 
-                    ? 'max-w-xs lg:max-w-md' 
-                    : 'max-w-md lg:max-w-2xl xl:max-w-4xl'
-                } px-6 py-4 rounded-3xl shadow-lg ${
-                  message.is_user
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                    : 'bg-white/90 backdrop-blur-sm text-gray-900 border border-purple-200/50'
-                }`}
-                style={{ wordBreak: 'break-word' }}
-              >
-                {message.image_url && (
-                  <img
-                    src={message.image_url}
-                    alt="Uploaded"
-                    className="w-full rounded-2xl mb-3 shadow-md"
-                  />
-                )}
-                {message.content && (
-                  <MathRenderer content={message.content} />
-                )}
-                <p
-                  className={`text-xs mt-2 ${
-                    message.is_user ? 'text-purple-100' : 'text-gray-500'
-                  }`}
-                >
-                  {formatTime(message.created_at)}
-                </p>
-              </div>
-              {message.is_user && (
-                <div className="ml-3 mt-1">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <User className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Image Preview */}
-      {imagePreview && (
-        <div className="px-6 py-4 bg-white/90 backdrop-blur-sm border-t border-purple-200/50">
-          <div className="relative inline-block">
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="h-24 w-24 object-cover rounded-2xl shadow-lg border-2 border-purple-200"
-            />
-            <button
-              onClick={removeImage}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-all duration-300 hover:scale-110 shadow-lg"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          
+          <div className="encouragement" style={{ 
+            fontSize: '0.85rem',
+            maxWidth: '200px',
+            textAlign: 'right'
+          }}>
+            {encouragements[Math.floor(Math.random() * encouragements.length)]}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Message Input */}
-      <form onSubmit={sendMessage} className="bg-white/90 backdrop-blur-md border-t border-purple-200/50 p-6">
-        <div className="flex items-end space-x-3">
-          {/* Gallery Image Upload */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-4 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg bg-white border border-purple-200"
-            title="갤러리에서 사진 선택"
-          >
-            <Image className="h-6 w-6" />
-          </button>
-          
-          {/* Camera Capture */}
-          <button
-            type="button"
-            onClick={() => cameraInputRef.current?.click()}
-            className="p-4 text-pink-600 hover:text-pink-700 hover:bg-pink-50 rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg bg-white border border-pink-200"
-            title="카메라로 사진 촬영"
-          >
-            <Camera className="h-6 w-6" />
-          </button>
-          
-          {/* Hidden File Inputs */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="hidden"
-          />
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleCameraCapture}
-            className="hidden"
-          />
-          
-          <div className="flex-1">
+      {/* 메시지 영역 */}
+      <div style={{
+        flex: 1,
+        width: '100%',
+        maxWidth: '1000px',
+        background: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: '20px 20px 0 0',
+        border: '2px solid #E6E6FA',
+        borderBottom: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '15px'
+        }}>
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <div className="loading" style={{ marginBottom: '10px' }}></div>
+              <p style={{ color: '#4A90E2' }}>메시지를 불러오는 중이에요... ✨</p>
+            </div>
+          )}
+
+          {!loading && messages.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px',
+              background: 'rgba(255, 182, 193, 0.1)',
+              borderRadius: '20px',
+              border: '2px dashed #FFB6C1'
+            }}>
+              <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🤖💕</div>
+              <h3 style={{ 
+                fontSize: '1.5rem',
+                fontFamily: 'Cute Font, cursive',
+                color: '#003876',
+                marginBottom: '15px'
+              }}>
+                안녕 지아! 반가워! 🌟
+              </h3>
+              <p style={{ color: '#6B7280', fontSize: '1rem', lineHeight: '1.6' }}>
+                무엇이든 궁금한 게 있으면 물어봐!<br />
+                수학 문제든 영어 단어든 모든 걸 도와줄게 ✨<br />
+                <span style={{ fontWeight: '600', color: '#4A90E2' }}>
+                  서울대 가는 그날까지 함께 하자! 💪
+                </span>
+              </p>
+            </div>
+          )}
+
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              style={{
+                display: 'flex',
+                justifyContent: message.is_ai ? 'flex-start' : 'flex-end',
+                marginBottom: '15px'
+              }}
+            >
+              <div style={{
+                maxWidth: '70%',
+                background: message.is_ai 
+                  ? 'linear-gradient(135deg, rgba(255, 182, 193, 0.1), rgba(255, 218, 185, 0.1))'
+                  : 'linear-gradient(135deg, #4A90E2, #003876)',
+                color: message.is_ai ? '#333' : 'white',
+                padding: '15px 20px',
+                borderRadius: message.is_ai ? '20px 20px 20px 5px' : '20px 20px 5px 20px',
+                border: message.is_ai ? '2px solid #FFB6C1' : 'none',
+                position: 'relative'
+              }}>
+                {message.is_ai && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    left: '15px',
+                    background: 'white',
+                    border: '2px solid #FFB6C1',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}>
+                    🤖
+                  </div>
+                )}
+
+                {!message.is_ai && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '15px',
+                    background: 'white',
+                    border: '2px solid #4A90E2',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}>
+                    👩‍🎓
+                  </div>
+                )}
+
+                <div style={{ marginTop: message.is_ai ? '15px' : '15px' }}>
+                  {message.image_path && (
+                    <div style={{ marginBottom: '10px' }}>
+                      <img 
+                        src={message.image_path} 
+                        alt="Uploaded" 
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '300px',
+                          borderRadius: '10px',
+                          border: '2px solid rgba(255, 255, 255, 0.3)'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  <MathRenderer content={message.content} />
+                  
+                  <div style={{
+                    fontSize: '0.8rem',
+                    opacity: 0.7,
+                    marginTop: '8px',
+                    textAlign: message.is_ai ? 'left' : 'right'
+                  }}>
+                    {new Date(message.created_at).toLocaleTimeString('ko-KR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {sending && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{
+                background: 'rgba(255, 182, 193, 0.1)',
+                border: '2px solid #FFB6C1',
+                borderRadius: '20px 20px 20px 5px',
+                padding: '15px 20px',
+                position: 'relative'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  left: '15px',
+                  background: 'white',
+                  border: '2px solid #FFB6C1',
+                  borderRadius: '50%',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem'
+                }}>
+                  🤖
+                </div>
+                <div style={{ marginTop: '15px' }}>
+                  <div className="loading" style={{ marginBottom: '5px' }}></div>
+                  <span style={{ color: '#4A90E2', fontSize: '0.9rem' }}>
+                    지아의 질문을 열심히 생각하고 있어요... 💭
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* 이미지 미리보기 */}
+        {imagePreview && (
+          <div style={{
+            padding: '15px 20px',
+            borderTop: '1px solid #E6E6FA'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              padding: '10px',
+              borderRadius: '10px',
+              border: '2px solid #E6E6FA'
+            }}>
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  objectFit: 'cover',
+                  borderRadius: '8px'
+                }}
+              />
+              <span style={{ flex: 1, fontSize: '0.9rem', color: '#4A90E2' }}>
+                📷 이미지가 첨부되었어요!
+              </span>
+              <button
+                onClick={removeImage}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '2px solid #EF4444',
+                  borderRadius: '50%',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#EF4444',
+                  fontSize: '1rem'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 입력 영역 */}
+        <div style={{
+          padding: '20px',
+          borderTop: '2px solid #E6E6FA',
+          background: 'rgba(255, 255, 255, 0.9)'
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'flex-end'
+          }}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageSelect}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                background: 'rgba(255, 182, 193, 0.2)',
+                border: '2px solid #FFB6C1',
+                borderRadius: '50%',
+                width: '45px',
+                height: '45px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                transition: 'all 0.3s ease',
+                flexShrink: 0
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 182, 193, 0.4)';
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 182, 193, 0.2)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              📷
+            </button>
+
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="AI 튜터에게 질문하세요... 📝"
-              className="w-full p-4 border-2 border-purple-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none bg-white/90 backdrop-blur-sm text-gray-900 placeholder-purple-400 shadow-lg"
-              rows={1}
-              style={{ maxHeight: '120px' }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  sendMessage(e)
-                }
+              onKeyPress={handleKeyPress}
+              placeholder="지아야, 궁금한 게 있으면 언제든 물어봐! ✨"
+              disabled={sending}
+              style={{
+                flex: 1,
+                minHeight: '45px',
+                maxHeight: '120px',
+                padding: '12px 20px',
+                border: '2px solid #E6E6FA',
+                borderRadius: '25px',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                background: 'rgba(255, 255, 255, 0.9)',
+                resize: 'none',
+                outline: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#4A90E2';
+                e.target.style.boxShadow = '0 0 0 3px rgba(74, 144, 226, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E6E6FA';
+                e.target.style.boxShadow = 'none';
               }}
             />
+
+            <button
+              onClick={handleSendMessage}
+              disabled={sending || (!newMessage.trim() && !selectedImage)}
+              style={{
+                background: (!newMessage.trim() && !selectedImage) 
+                  ? 'rgba(200, 200, 200, 0.5)' 
+                  : 'linear-gradient(135deg, #4A90E2, #003876)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '45px',
+                height: '45px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: (!newMessage.trim() && !selectedImage) ? 'not-allowed' : 'pointer',
+                fontSize: '1.2rem',
+                color: 'white',
+                transition: 'all 0.3s ease',
+                flexShrink: 0
+              }}
+              onMouseEnter={(e) => {
+                if (!(!newMessage.trim() && !selectedImage)) {
+                  e.target.style.transform = 'scale(1.1)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(74, 144, 226, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              {sending ? '⏳' : '🚀'}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={(!newMessage.trim() && !selectedImage) || sending}
-            className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            {sending ? (
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-300"></div>
-              </div>
-            ) : (
-              <Send className="h-6 w-6" />
-            )}
-          </button>
         </div>
-      </form>
+      </div>
+
+      {/* 떠다니는 응원 메시지 */}
+      <div style={{ 
+        position: 'fixed',
+        bottom: '100px',
+        right: '30px',
+        background: 'rgba(176, 224, 230, 0.9)',
+        padding: '12px 18px',
+        borderRadius: '20px',
+        border: '2px solid #B0E0E6',
+        maxWidth: '150px',
+        fontSize: '0.8rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'float 6s ease-in-out infinite',
+        zIndex: 1000
+      }}>
+        💪 화이팅 지아!
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Chat;

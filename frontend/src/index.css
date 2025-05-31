@@ -1,105 +1,352 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 지아의 서울대 입시 튜터 - 여고생 감성 디자인 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Cute+Font&display=swap');
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-
-/* Custom styles for AISSAM */
-@layer base {
-  body {
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  }
-}
-
-@layer components {
-  .subject-card {
-    @apply p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer;
-  }
+:root {
+  /* 서울대 & 여고생 감성 컬러 팔레트 */
+  --snu-blue: #003876;
+  --snu-light-blue: #4A90E2;
+  --cute-pink: #FFB6C1;
+  --cute-lavender: #E6E6FA;
+  --cute-mint: #B0E0E6;
+  --cute-peach: #FFDAB9;
+  --cute-yellow: #FFF8DC;
+  --white: #FFFFFF;
+  --light-gray: #F8F9FA;
+  --text-dark: #2C3E50;
+  --success-green: #52C41A;
+  --warning-orange: #FA8C16;
   
-  .chat-bubble-user {
-    @apply bg-blue-500 text-white p-3 rounded-lg max-w-xs ml-auto;
-  }
+  /* 그라데이션 */
+  --gradient-main: linear-gradient(135deg, var(--snu-blue) 0%, var(--snu-light-blue) 50%, var(--cute-mint) 100%);
+  --gradient-cute: linear-gradient(135deg, var(--cute-pink) 0%, var(--cute-lavender) 50%, var(--cute-mint) 100%);
+  --gradient-success: linear-gradient(135deg, var(--cute-mint) 0%, var(--success-green) 100%);
   
-  .chat-bubble-ai {
-    @apply bg-gray-100 text-gray-800 p-3 rounded-lg max-w-md mr-auto;
-  }
-  
-  .loading-dots {
-    @apply inline-flex space-x-1;
-  }
-  
-  .loading-dots span {
-    @apply h-2 w-2 bg-blue-500 rounded-full animate-bounce;
-  }
-  
-  .loading-dots span:nth-child(2) {
-    animation-delay: 0.1s;
-  }
-  
-  .loading-dots span:nth-child(3) {
-    animation-delay: 0.2s;
-  }
+  /* 폰트 */
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Loading dots animation */
-.loading-dots {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.loading-dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: currentColor;
-  animation: loading-dots 1.4s infinite ease-in-out both;
-}
-
-.loading-dots span:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.loading-dots span:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes loading-dots {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Custom input focus styles */
-input:focus, textarea:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Smooth transitions */
+/* 전체 레이아웃 */
 * {
-  transition-property: color, background-color, border-color, box-shadow, transform;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--gradient-main);
+  min-height: 100vh;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+/* 배경 애니메이션 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, var(--cute-pink) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, var(--cute-lavender) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, var(--cute-mint) 0%, transparent 50%);
+  opacity: 0.3;
+  z-index: -1;
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-20px) rotate(1deg); }
+  66% { transform: translateY(10px) rotate(-1deg); }
+}
+
+/* 메인 컨테이너 */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 페이지 컨테이너 */
+.page-container {
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* 카드 스타일 */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 30px;
+  box-shadow: 
+    0 20px 40px rgba(0, 56, 118, 0.1),
+    0 10px 20px rgba(255, 182, 193, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-cute);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 25px 50px rgba(0, 56, 118, 0.15),
+    0 15px 30px rgba(255, 182, 193, 0.15);
+}
+
+/* 제목 스타일 */
+.main-title {
+  font-family: 'Cute Font', 'Noto Sans KR', cursive;
+  font-size: 3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  font-family: 'Cute Font', 'Noto Sans KR', cursive;
+  font-size: 1.5rem;
+  text-align: center;
+  color: var(--snu-light-blue);
+  margin-bottom: 30px;
+}
+
+/* 격려 메시지 */
+.encouragement {
+  font-family: 'Cute Font', 'Noto Sans KR', cursive;
+  font-size: 1.2rem;
+  color: var(--cute-pink);
+  text-align: center;
+  margin: 15px 0;
+  padding: 10px 20px;
+  background: rgba(255, 182, 193, 0.1);
+  border-radius: 20px;
+  border: 2px dashed var(--cute-pink);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+/* 버튼 스타일 */
+.btn {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.btn-primary {
+  background: var(--gradient-main);
+  color: white;
+  box-shadow: 0 10px 20px rgba(0, 56, 118, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 56, 118, 0.4);
+}
+
+.btn-secondary {
+  background: var(--gradient-cute);
+  color: white;
+  box-shadow: 0 10px 20px rgba(255, 182, 193, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(255, 182, 193, 0.4);
+}
+
+.btn-success {
+  background: var(--gradient-success);
+  color: white;
+  box-shadow: 0 10px 20px rgba(82, 196, 26, 0.3);
+}
+
+/* 폼 스타일 */
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px 20px;
+  border: 2px solid var(--cute-lavender);
+  border-radius: 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--snu-light-blue);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 네비게이션 */
+.nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 15px 30px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 진행 상황 바 */
+.progress-container {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 5px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 10px;
+  background: var(--gradient-success);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .main-title {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1.3rem;
+  }
+  
+  .card {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .encouragement {
+    font-size: 1rem;
+  }
+}
+
+/* 로딩 애니메이션 */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 성공/에러 메시지 */
+.alert {
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin: 15px 0;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: rgba(82, 196, 26, 0.1);
+  color: var(--success-green);
+  border: 2px solid rgba(82, 196, 26, 0.3);
+}
+
+.alert-error {
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+  border: 2px solid rgba(255, 77, 79, 0.3);
+}
+
+/* 애니메이션 효과 */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }

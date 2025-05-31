@@ -1,296 +1,429 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { BookOpen, MessageSquare, Users, TrendingUp, LogOut, Plus, Clock, Star, ArrowRight, GraduationCap } from 'lucide-react'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Chat from './Chat';
 
-export default function Dashboard() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [chatSessions, setChatSessions] = useState([])
-  const [subjects, setSubjects] = useState([])
-  const [loading, setLoading] = useState(true)
+const Dashboard = () => {
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showChat, setShowChat] = useState(false);
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const encouragements = [
+    "지아야, 오늘도 열심히 공부해보자! 💪",
+    "서울대까지 한 걸음씩! 화이팅! ✨",
+    "꾸준히 하면 반드시 될 거야! 🌟",
+    "지아는 정말 대단해! 포기하지 마! 💕"
+  ];
+
+  const subjectEmojis = {
+    '수학': '🔢',
+    '영어': '🇺🇸',
+    '국어': '📖',
+    '과학': '🧪',
+    '사회': '🌍',
+    '물리': '⚛️',
+    '화학': '🧬',
+    '생물': '🌱',
+    '지구과학': '🌎',
+    '한국사': '📜',
+    '세계사': '🏺',
+    '지리': '🗺️'
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchSubjects();
+  }, []);
 
-  const fetchData = async () => {
+  const fetchSubjects = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const [subjectsRes, sessionsRes] = await Promise.all([
-        axios.get('/subjects', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('/chat-sessions', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ])
-      setSubjects(subjectsRes.data)
-      setChatSessions(sessionsRes.data)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      // 임시로 기본 과목 데이터 설정
-      setSubjects([
-        { id: 1, name: '수학', icon: 'calculator', color: '#8B5CF6' },
-        { id: 2, name: '국어', icon: 'book', color: '#F59E0B' },
-        { id: 3, name: '영어', icon: 'globe', color: '#10B981' },
-        { id: 4, name: '사회', icon: 'building', color: '#EF4444' },
-        { id: 5, name: '과학', icon: 'beaker', color: '#3B82F6' }
-      ])
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSubjects(data);
+      } else {
+        setError('과목을 불러오는데 실패했어요 😔');
+      }
+    } catch (err) {
+      setError('네트워크 오류가 발생했어요 😅');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const createNewSession = async (subjectId) => {
+  const fetchSessions = async (subjectId) => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.post('/chat-sessions', 
-        { subject_id: subjectId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      navigate(`/chat/${response.data.id}`)
-    } catch (error) {
-      console.error('Error creating session:', error)
-      // 임시로 새 세션 ID 생성해서 채팅으로 이동
-      const tempSessionId = Date.now()
-      navigate(`/chat/${tempSessionId}`)
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/${subjectId}/sessions/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSessions(data);
+      }
+    } catch (err) {
+      setError('세션을 불러오는데 실패했어요 😔');
     }
-  }
+  };
+
+  const handleSubjectSelect = (subject) => {
+    setSelectedSubject(subject);
+    setSelectedSession(null);
+    setShowChat(false);
+    fetchSessions(subject.id);
+  };
+
+  const handleSessionSelect = (session) => {
+    setSelectedSession(session);
+    setShowChat(true);
+  };
+
+  const handleNewSession = () => {
+    setSelectedSession(null);
+    setShowChat(true);
+  };
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-purple-600 font-medium">로딩중...</p>
+      <div className="page-container" style={{ justifyContent: 'center' }}>
+        <div className="card" style={{ textAlign: 'center' }}>
+          <div className="loading" style={{ marginBottom: '20px' }}></div>
+          <p style={{ fontSize: '1.2rem', color: '#4A90E2' }}>
+            지아의 학습 환경을 준비중이에요... ✨
+          </p>
         </div>
       </div>
-    )
+    );
+  }
+
+  if (showChat) {
+    return (
+      <Chat 
+        subject={selectedSubject}
+        session={selectedSession}
+        onBack={() => setShowChat(false)}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-purple-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-xl">
-                <GraduationCap className="h-6 w-6" />
-              </div>
-              <h1 className="ml-3 text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                AISSAM
-              </h1>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-sm text-gray-600">
-                안녕하세요, <span className="font-semibold text-purple-700">{user?.email}</span>님
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-gray-600 hover:text-purple-700 transition-colors px-3 py-2 rounded-lg hover:bg-purple-50"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                로그아웃
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20">
-          <div className="text-center relative">
-            {/* Floating illustrations */}
-            <div className="absolute top-0 left-10 w-24 h-24 bg-purple-200 rounded-full opacity-20 animate-bounce"></div>
-            <div className="absolute top-10 right-20 w-16 h-16 bg-pink-200 rounded-full opacity-30 animate-pulse"></div>
-            <div className="absolute bottom-0 left-1/4 w-20 h-20 bg-indigo-200 rounded-full opacity-25 animate-bounce delay-150"></div>
-            
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                AI와 함께
-              </span>
-              <br />
-              <span className="text-gray-800">
-                언제 어디서나 쉽게
-              </span>
+    <div className="page-container">
+      {/* 헤더 */}
+      <div className="nav" style={{ width: '100%', maxWidth: '1200px' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <div>
+            <h1 style={{ 
+              fontSize: '2rem', 
+              fontFamily: 'Cute Font, cursive',
+              background: 'linear-gradient(135deg, #003876, #4A90E2)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0
+            }}>
+              🎓 지아의 서울대 튜터
             </h1>
-            
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              대입 준비를 위한 당신만의 AI 과외쌤과 함께<br />
-              <span className="font-semibold text-purple-600">24시간 언제든지</span> 질문하고 배워보세요
+            <p style={{ color: '#6B7280', margin: '5px 0 0 0' }}>
+              안녕하세요, {user?.name || '지아'}님! 오늘도 화이팅! 💪
             </p>
-            
-            <button 
-              onClick={() => createNewSession(subjects[0]?.id)}
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 mb-12"
-            >
-              학습 시작하기
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </button>
-
-            {/* Happy Learners */}
-            <div className="flex items-center justify-center space-x-4 mb-16">
-              <div className="flex -space-x-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 border-2 border-white flex items-center justify-center text-white font-bold">👨</div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 border-2 border-white flex items-center justify-center text-white font-bold">👩</div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-400 to-red-400 border-2 border-white flex items-center justify-center text-white font-bold">👨</div>
-              </div>
-              <div className="text-yellow-400 flex">
-                {'★'.repeat(5)}
-              </div>
-              <span className="text-gray-600 font-medium">{chatSessions.length}+ 만족한 학생들</span>
-            </div>
-            
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-purple-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4">
-                  <MessageSquare className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">{chatSessions.length}</h3>
-                <p className="text-gray-600 font-medium">완료한 대화 세션</p>
-              </div>
-              
-              <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-purple-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mx-auto mb-4">
-                  <BookOpen className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">5</h3>
-                <p className="text-gray-600 font-medium">수능 필수 과목</p>
-              </div>
-              
-              <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-purple-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pink-500 to-red-500 rounded-2xl mx-auto mb-4">
-                  <Clock className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">24/7</h3>
-                <p className="text-gray-600 font-medium">AI 튜터 지원</p>
-              </div>
-            </div>
           </div>
+          <button 
+            onClick={handleLogout}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.9rem', padding: '10px 20px' }}
+          >
+            👋 안녕히 가세요
+          </button>
         </div>
-      </section>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        {/* Subject Cards */}
-        <section className="mb-20">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 text-center">과목별 학습 시작</h2>
-          <p className="text-xl text-gray-600 mb-12 text-center">원하는 과목을 선택해서 AI 튜터와 대화를 시작하세요</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
-            {subjects.map((subject, index) => (
-              <div
-                key={subject.id}
-                className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 cursor-pointer overflow-hidden border border-gray-100"
-                onClick={() => createNewSession(subject.id)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
-                <div className="relative p-8 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center text-3xl shadow-lg"
-                       style={{ backgroundColor: `${subject.color}15`, border: `3px solid ${subject.color}30` }}>
-                    {subject.icon === 'calculator' ? '📐' : 
-                     subject.icon === 'globe' ? '🔤' : 
-                     subject.icon === 'book' ? '📚' :
-                     subject.icon === 'building' ? '🏛️' :
-                     subject.icon === 'beaker' ? '🔬' : '📖'}
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{subject.name}</h3>
-                  <p className="text-sm text-gray-600 mb-6">AI 튜터와 함께 학습</p>
-                  
-                  <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold transition-all group-hover:shadow-lg"
-                       style={{ 
-                         backgroundColor: `${subject.color}15`, 
-                         color: subject.color,
-                         border: `2px solid ${subject.color}30`
-                       }}>
-                    시작하기
-                    <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* 메인 타이틀 */}
+      <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px', textAlign: 'center' }}>
+        <h2 className="main-title" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>
+          지아야 서울대 가자! 🌟
+        </h2>
+        <p className="subtitle" style={{ marginBottom: '20px' }}>
+          꿈을 향한 여정, 함께 걸어가요
+        </p>
+        
+        {/* 격려 메시지 */}
+        <div className="encouragement">
+          {encouragements[Math.floor(Math.random() * encouragements.length)]}
+        </div>
+
+        {/* 진행률 표시 */}
+        <div style={{ margin: '30px 0' }}>
+          <h3 style={{ 
+            color: '#003876', 
+            marginBottom: '15px',
+            fontFamily: 'Cute Font, cursive',
+            fontSize: '1.3rem'
+          }}>
+            📊 지아의 학습 진행률
+          </h3>
+          <div className="progress-container">
+            <div 
+              className="progress-bar" 
+              style={{ width: `${Math.min((subjects.length * 10), 100)}%` }}
+            ></div>
           </div>
-        </section>
+          <p style={{ fontSize: '0.9rem', color: '#4A90E2', marginTop: '10px' }}>
+            {subjects.length > 0 ? `${subjects.length}개 과목으로 열심히 공부 중! 🔥` : '첫 과목을 선택해보세요! ✨'}
+          </p>
+        </div>
+      </div>
 
-        {/* Recent Conversations */}
-        <section>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 text-center">최근 대화</h2>
-          <p className="text-xl text-gray-600 mb-12 text-center">이전 학습 세션을 계속해보세요</p>
-          
-          {chatSessions.length > 0 ? (
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-purple-200/50">
-              {chatSessions.slice(0, 5).map((session, index) => (
+      {error && (
+        <div className="alert alert-error" style={{ maxWidth: '1200px', width: '100%' }}>
+          <span style={{ marginRight: '8px' }}>😅</span>
+          {error}
+        </div>
+      )}
+
+      {/* 과목 선택 섹션 */}
+      <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px' }}>
+        <h3 style={{ 
+          fontSize: '1.8rem',
+          fontFamily: 'Cute Font, cursive',
+          color: '#003876',
+          marginBottom: '25px',
+          textAlign: 'center'
+        }}>
+          📚 어떤 과목을 공부할까요?
+        </h3>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '20px'
+        }}>
+          {subjects.map((subject) => (
+            <div
+              key={subject.id}
+              onClick={() => handleSubjectSelect(subject)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: selectedSubject?.id === subject.id ? '3px solid #4A90E2' : '2px solid #E6E6FA',
+                borderRadius: '20px',
+                padding: '25px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              className="card"
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-5px)';
+                e.target.style.boxShadow = '0 15px 30px rgba(74, 144, 226, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>
+                {subjectEmojis[subject.name] || '📖'}
+              </div>
+              <h4 style={{ 
+                fontSize: '1.3rem',
+                fontWeight: '600',
+                color: '#003876',
+                marginBottom: '10px'
+              }}>
+                {subject.name}
+              </h4>
+              <p style={{ 
+                color: '#6B7280',
+                fontSize: '0.9rem',
+                lineHeight: '1.4'
+              }}>
+                {subject.description || '열심히 공부해서 서울대 가자!'}
+              </p>
+              
+              {selectedSubject?.id === subject.id && (
+                <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: '#4A90E2',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.2rem'
+                }}>
+                  ✓
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 세션 섹션 */}
+      {selectedSubject && (
+        <div className="card fade-in" style={{ width: '100%', maxWidth: '1200px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '25px',
+            flexWrap: 'wrap'
+          }}>
+            <h3 style={{ 
+              fontSize: '1.6rem',
+              fontFamily: 'Cute Font, cursive',
+              color: '#003876',
+              margin: 0
+            }}>
+              💭 {selectedSubject.name} 학습 세션
+            </h3>
+            <button
+              onClick={handleNewSession}
+              className="btn btn-primary"
+              style={{ fontSize: '0.9rem', padding: '12px 24px' }}
+            >
+              ✨ 새로운 공부 시작!
+            </button>
+          </div>
+
+          {sessions.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px',
+              background: 'rgba(255, 182, 193, 0.1)',
+              borderRadius: '15px',
+              border: '2px dashed #FFB6C1'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📝</div>
+              <p style={{ 
+                fontSize: '1.1rem',
+                color: '#4A90E2',
+                fontFamily: 'Cute Font, cursive'
+              }}>
+                첫 번째 {selectedSubject.name} 공부를 시작해보세요!
+              </p>
+              <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '10px' }}>
+                궁금한 것들을 AI 선생님과 함께 해결해봐요 ✨
+              </p>
+            </div>
+          ) : (
+            <div style={{ 
+              display: 'grid', 
+              gap: '15px'
+            }}>
+              {sessions.map((session) => (
                 <div
                   key={session.id}
-                  className={`group p-8 hover:bg-purple-50/50 cursor-pointer transition-all duration-300 ${
-                    index !== chatSessions.length - 1 && index !== 4 ? 'border-b border-gray-100' : ''
-                  }`}
-                  onClick={() => navigate(`/chat/${session.id}`)}
+                  onClick={() => handleSessionSelect(session)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: '2px solid #E6E6FA',
+                    borderRadius: '15px',
+                    padding: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = '#4A90E2';
+                    e.target.style.transform = 'translateX(5px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = '#E6E6FA';
+                    e.target.style.transform = 'translateX(0)';
+                  }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl shadow-lg"
-                           style={{ backgroundColor: `${session.subject?.color}15` }}>
-                        {session.subject?.icon === 'calculator' ? '📐' : 
-                          session.subject?.icon === 'globe' ? '🔤' : 
-                          session.subject?.icon === 'book' ? '📚' :
-                          session.subject?.icon === 'building' ? '🏛️' :
-                          session.subject?.icon === 'beaker' ? '🔬' : '📖'}
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
-                          {session.subject?.name || '과목'} 학습
-                        </h3>
-                        <p className="text-gray-500 flex items-center">
-                          <Clock className="h-4 w-4 mr-2" />
-                          {new Date(session.created_at).toLocaleString('ko-KR', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false 
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                  <div>
+                    <h4 style={{ 
+                      color: '#003876',
+                      marginBottom: '5px',
+                      fontSize: '1.1rem'
+                    }}>
+                      💬 {session.title || `${selectedSubject.name} 공부`}
+                    </h4>
+                    <p style={{ 
+                      color: '#6B7280',
+                      fontSize: '0.9rem',
+                      margin: 0
+                    }}>
+                      {new Date(session.created_at).toLocaleDateString('ko-KR')} 📅
+                    </p>
                   </div>
+                  <div style={{ fontSize: '1.5rem' }}>→</div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-16 text-center border border-purple-200/50">
-              <div className="w-24 h-24 bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                <MessageSquare className="h-12 w-12 text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">아직 대화가 없습니다</h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg">
-                위의 과목 카드를 클릭해서 AI 튜터와 첫 대화를 시작해보세요!
-              </p>
-              <button 
-                onClick={() => createNewSession(subjects[0]?.id)}
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                첫 대화 시작하기
-              </button>
-            </div>
           )}
-        </section>
-      </main>
+        </div>
+      )}
+
+      {/* 떠다니는 응원 메시지들 */}
+      <div style={{ 
+        position: 'fixed',
+        bottom: '30px',
+        left: '30px',
+        background: 'rgba(255, 182, 193, 0.9)',
+        padding: '15px 20px',
+        borderRadius: '25px',
+        border: '2px solid #FFB6C1',
+        maxWidth: '200px',
+        fontSize: '0.85rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'bounce 4s ease-in-out infinite',
+        zIndex: 1000
+      }}>
+        🎯 목표: 서울대 입학!
+      </div>
+
+      <div style={{ 
+        position: 'fixed',
+        top: '50%',
+        right: '30px',
+        background: 'rgba(176, 224, 230, 0.9)',
+        padding: '15px 20px',
+        borderRadius: '25px',
+        border: '2px solid #B0E0E6',
+        maxWidth: '180px',
+        fontSize: '0.85rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'float 5s ease-in-out infinite',
+        zIndex: 1000
+      }}>
+        ✨ 지아는 할 수 있어!
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Dashboard;

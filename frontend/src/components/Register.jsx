@@ -1,264 +1,284 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { GraduationCap, Bot, Sparkles, Eye, EyeOff } from 'lucide-react'
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
 
-export default function Register() {
+const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    grade: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  
-  const { register } = useAuth()
-  const navigate = useNavigate()
+    confirmPassword: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const grades = ['고1', '고2', '고3']
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
+  const encouragements = [
+    "지아야, 서울대 가는 여정이 시작돼! ",
+    "새로운 도전, 새로운 시작! 화이팅! ",
+    "꿈을 향한 첫걸음을 응원해! ",
+    "지아의 성공 스토리가 시작돼요! "
+  ];
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.')
-      setLoading(false)
-      return
+      setError('비밀번호가 일치하지 않아요! 다시 확인해주세요 ');
+      setIsLoading(false);
+      return;
     }
 
-    if (formData.password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.')
-      setLoading(false)
-      return
+    try {
+      await register(formData.username, formData.email, formData.password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('회원가입에 실패했어요. 다시 시도해주세요! ');
+    } finally {
+      setIsLoading(false);
     }
-
-    const userData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      grade: formData.grade
-    }
-
-    const result = await register(userData)
-    
-    if (result.success) {
-      navigate('/dashboard')
-    } else {
-      setError(result.error)
-    }
-    
-    setLoading(false)
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-300/10 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="relative max-w-md w-full space-y-8">
-        {/* Header Section */}
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-300">
-                <GraduationCap className="h-12 w-12 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-400 p-2 rounded-full shadow-lg">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-            </div>
+    <div className="page-container">
+      {/* 메인 카드 */}
+      <div className="card fade-in" style={{ maxWidth: '500px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <div style={{ 
+            fontSize: '4rem', 
+            marginBottom: '10px',
+            background: 'linear-gradient(135deg, #003876, #4A90E2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 'bold'
+          }}>
+            
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            AISSAM
-          </h1>
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">
-            AI 개인 과외 회원가입
-          </h2>
-          <div className="flex items-center justify-center space-x-2 text-purple-600">
-            <Bot className="h-5 w-5" />
-            <p className="text-sm font-medium">
-              24시간 언제나 함께하는 AI 선생님
-            </p>
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <h1 className="main-title">지아야 서울대 가자!</h1>
+          <p className="subtitle">꿈을 현실로 만드는 여정의 시작</p>
         </div>
-        
-        {/* Register Form */}
-        <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/50">
+
+        {/* 격려 메시지 */}
+        <div className="encouragement">
+          {encouragements[Math.floor(Math.random() * encouragements.length)]}
+        </div>
+
+        {/* 회원가입 폼 */}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="username" className="form-label">
+              사용자명 (지아처럼 귀여운 이름으로!)
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="지아, 서울대생지아, 등등..."
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              이메일 주소
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="zia@seoul-university.future"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password" className="form-label">
+              비밀번호 (서울대처럼 강력하게!)
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="8글자 이상으로 안전하게"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword" className="form-label">
+              비밀번호 확인
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="위와 동일하게 입력해주세요"
+              required
+            />
+          </div>
+
           {error && (
-            <div className="mb-6 bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm backdrop-blur-sm">
+            <div className="alert alert-error">
+              <span style={{ marginRight: '8px' }}> </span>
               {error}
             </div>
           )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary"
+            style={{ 
+              width: '100%', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              padding: '18px'
+            }}
+          >
+            {isLoading ? (
+              <>
+                <span className="loading"></span>
+                <span style={{ marginLeft: '10px' }}>가입 중...</span>
+              </>
+            ) : (
+              ' 지아의 서울대 여정 시작!'
+            )}
+          </button>
+        </form>
+
+        {/* 로그인 링크 */}
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <p style={{ color: '#6B7280', marginBottom: '10px' }}>
+            이미 계정이 있나요?
+          </p>
+          <Link 
+            to="/login" 
+            className="btn btn-secondary"
+            style={{ textDecoration: 'none' }}
+          >
+            로그인하러 가기
+          </Link>
+        </div>
+
+        {/* 서울대 맵 장식 */}
+        <div style={{ 
+          position: 'absolute',
+          bottom: '-30px',
+          left: '-30px',
+          opacity: 0.1,
+          fontSize: '8rem',
+          transform: 'rotate(-15deg)',
+          zIndex: -1
+        }}>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                이름
-              </label>
-              <input
-                name="name"
-                type="text"
-                required
-                className="w-full px-5 py-4 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
-                placeholder="이름을 입력하세요"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                이메일 주소
-              </label>
-              <input
-                name="email"
-                type="email"
-                required
-                className="w-full px-5 py-4 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
-                placeholder="이메일을 입력하세요"
-                value={formData.email}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                비밀번호
-              </label>
-              <div className="relative">
-                <input
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="w-full px-5 py-4 pr-12 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
-                  placeholder="비밀번호 (6자 이상)"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                비밀번호 확인
-              </label>
-              <div className="relative">
-                <input
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  required
-                  className="w-full px-5 py-4 pr-12 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
-                  placeholder="비밀번호를 다시 입력하세요"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Grade Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                학년 선택
-              </label>
-              <div className="flex space-x-4">
-                {grades.map((grade) => (
-                  <label key={grade} className="flex items-center cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="grade"
-                      value={grade}
-                      checked={formData.grade === grade}
-                      onChange={handleInputChange}
-                      className="sr-only"
-                    />
-                    <div className={`px-6 py-3 rounded-2xl border-2 transition-all duration-300 text-center font-semibold min-w-[4rem] ${
-                      formData.grade === grade
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-lg transform scale-105'
-                        : 'bg-white/70 backdrop-blur-sm border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
-                    }`}>
-                      {grade}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading || !formData.grade}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-2xl font-semibold hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02]"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                  회원가입 중...
-                </div>
-              ) : (
-                '회원가입'
-              )}
-            </button>
-          </form>
-
-          {/* Login Link */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 text-sm mb-2">이미 계정이 있으신가요?</p>
-            <Link
-              to="/login"
-              className="inline-flex items-center text-purple-600 hover:text-pink-600 font-semibold transition-colors duration-300"
-            >
-              로그인하기
-              <Sparkles className="ml-1 h-4 w-4" />
-            </Link>
-          </div>
         </div>
       </div>
+
+      {/* 서울대 정보 카드 */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        padding: '20px',
+        borderRadius: '20px',
+        border: '2px solid rgba(0, 56, 118, 0.3)',
+        maxWidth: '280px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h3 style={{ 
+          color: '#003876', 
+          marginBottom: '15px',
+          fontFamily: 'Cute Font, cursive',
+          fontSize: '1.3rem'
+        }}>
+           서울대 목표 체크!
+        </h3>
+        <div style={{ fontSize: '0.9rem', color: '#4A90E2', lineHeight: '1.6' }}>
+           매일 성실한 학습<br/>
+           포기하지 않는 의지<br/>
+           꾸준한 성장<br/>
+           서울대 입학!
+        </div>
+      </div>
+
+      {/* 떠다니는 격려 메시지들 */}
+      <div style={{ 
+        position: 'fixed',
+        top: '15%',
+        left: '10%',
+        background: 'rgba(255, 182, 193, 0.8)',
+        padding: '12px 18px',
+        borderRadius: '25px',
+        border: '2px solid #FFB6C1',
+        fontSize: '0.85rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'float 6s ease-in-out infinite',
+        transform: 'rotate(-5deg)'
+      }}>
+        할 수 있어! 아자아자! 
+      </div>
+
+      <div style={{ 
+        position: 'fixed',
+        top: '60%',
+        right: '8%',
+        background: 'rgba(176, 224, 230, 0.8)',
+        padding: '12px 18px',
+        borderRadius: '25px',
+        border: '2px solid #B0E0E6',
+        fontSize: '0.85rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'bounce 4s ease-in-out infinite',
+        transform: 'rotate(3deg)'
+      }}>
+        지아는 최고야! 
+      </div>
+
+      <div style={{ 
+        position: 'fixed',
+        top: '25%',
+        right: '15%',
+        background: 'rgba(255, 218, 185, 0.8)',
+        padding: '12px 18px',
+        borderRadius: '25px',
+        border: '2px solid #FFDAB9',
+        fontSize: '0.85rem',
+        fontFamily: 'Cute Font, cursive',
+        color: '#003876',
+        animation: 'float 5s ease-in-out infinite reverse',
+        transform: 'rotate(8deg)'
+      }}>
+        서울대 갈 거야! 
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Register;
