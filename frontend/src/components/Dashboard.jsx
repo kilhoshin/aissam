@@ -64,7 +64,7 @@ const Dashboard = () => {
 
   const fetchSessions = async (subjectId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subjects/${subjectId}/sessions`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat-sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -72,7 +72,9 @@ const Dashboard = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setSessions(data);
+        // Filter sessions by subject_id
+        const filteredSessions = data.filter(session => session.subject_id === subjectId);
+        setSessions(filteredSessions);
       }
     } catch (err) {
       setError('세션을 불러오는데 실패했어요 😔');

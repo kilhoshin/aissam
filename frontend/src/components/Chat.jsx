@@ -58,7 +58,7 @@ const Chat = ({ subject, session, onBack }) => {
     
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sessions/${session.id}/messages`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat-sessions/${session.id}/messages`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -92,19 +92,39 @@ const Chat = ({ subject, session, onBack }) => {
       const formData = new FormData();
       formData.append('content', messageText);
       
-      if (subject) {
-        formData.append('subject_id', subject.id);
-      }
-      
-      if (session) {
-        formData.append('session_id', session.id);
-      }
-      
       if (imageToSend) {
         formData.append('image', imageToSend);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat`, {
+      // Determine endpoint URL
+      let endpoint;
+      if (session) {
+        endpoint = `${import.meta.env.VITE_API_BASE_URL}/chat-sessions/${session.id}/messages`;
+      } else if (subject) {
+        // Create new session first
+        const sessionResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat-sessions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            subject_id: subject.id,
+            title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : '')
+          })
+        });
+
+        if (!sessionResponse.ok) {
+          throw new Error('세션 생성에 실패했어요');
+        }
+
+        const newSession = await sessionResponse.json();
+        endpoint = `${import.meta.env.VITE_API_BASE_URL}/chat-sessions/${newSession.id}/messages`;
+      } else {
+        throw new Error('과목 또는 세션 정보가 필요해요');
+      }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
