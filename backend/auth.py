@@ -29,7 +29,11 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    hashed = pwd_context.hash(password)
+    # Ensure it's a string, not bytes
+    if isinstance(hashed, bytes):
+        return hashed.decode('utf-8')
+    return hashed
 
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()

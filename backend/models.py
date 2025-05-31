@@ -11,9 +11,22 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     name = Column(String, nullable=False)  # 사용자 이름
-    hashed_password = Column(String)
+    _hashed_password = Column('hashed_password', String)
     grade = Column(String)  # 1학년, 2학년, 3학년
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    @property
+    def hashed_password(self):
+        if isinstance(self._hashed_password, bytes):
+            return self._hashed_password.decode('utf-8')
+        return self._hashed_password
+    
+    @hashed_password.setter
+    def hashed_password(self, value):
+        if isinstance(value, bytes):
+            self._hashed_password = value.decode('utf-8')
+        else:
+            self._hashed_password = value
     
     # Relationships
     chat_sessions = relationship("ChatSession", back_populates="user")
